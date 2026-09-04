@@ -153,6 +153,63 @@ awk 'NR>=1332 {print NR ":" $0} NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache
 
 ```
 
+qd:
+```bash
+awk 'NR>=1332 && NR<=1336 {print NR ":" $0} NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+awk 'NR>=1332 {print NR ":" $0} NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+```
+manakah yang lebih baik ?
+
+aa:
+Perintah **kedua jauh lebih baik** dari segi efisiensi penulisan kode (*code cleanliness*) tanpa mengorbankan performa.
+
+Berikut adalah perbandingan mendalam mengapa perintah kedua lebih unggul:
+
+`awk 'NR>=1332 {print NR ":" $0} NR==1336 {exit}' ...` (Pilihan Terbaik)
+- **Lebih Efisien & Pendek**: Anda menghilangkan pemeriksaan kondisi `&& NR<=1336`.
+- **Logika Sederhana**: Karena `awk` dipaksa berhenti tepat di baris 1336 (`NR==1336 {exit}`), maka secara otomatis `awk` **tidak akan pernah bisa** membaca atau mencetak baris 1337 ke atas. Batasan `NR<=1336` menjadi mubazir.
+
+`awk 'NR>=1332 && NR<=1336 {print NR ":" $0} NR==1336 {exit}' ...`
+- **Redundan (Mubazir)**: Di sini Anda melakukan pemeriksaan nomor baris sebanyak dua kali untuk batas atasnya (pertama di `NR<=1336`, kedua di `NR==1336`).
+- Secara performa eksekusi pada komputer modern, perbedaannya sangat mikroskopis (hampir tidak terasa), namun kode ini menjadi lebih panjang dan kurang bersih dibaca.
+
+Kesimpulan
+
+Gunakan **perintah kedua**. Itu adalah cara paling *idiomatic* (lazim dan efisien) dalam menggunakan awk untuk mengambil rentang baris tertentu.
+
+qa: Apakah Anda ingin melanjutkan dengan **mencari pola kata tertentu (seperti nama fungsi)** di dalam rentang baris tersebut menggunakan `awk` ?
+
+qc: Saya ingin melanjutkan dengan **mencari pola kata tertentu (seperti nama fungsi)** di dalam rentang baris tersebut menggunakan `awk`
+
+aa:
+Untuk mencari pola kata tertentu (misalnya nama fungsi atau kata kunci) khusus di dalam rentang baris tersebut, Anda bisa menyisipkan kondisi pencocokan teks menggunakan operator ~ (match) atau `/pola/` di dalam perintah `awk`.
+
+Berikut adalah beberapa cara terbaik yang bisa Anda gunakan:
+Berikut adalah beberapa cara terbaik untuk bisa digunakan:
+
+1. Hanya Mencetak Baris yang Cocok (Rekomendasi)
+Jika Anda hanya ingin menampilkan baris di rentang 1332–1336 yang **mengandung kata tertentu** (misalnya kata `format`):
+```bash
+awk 'NR>=1332 { if ($0 ~ /format/) print NR ":" $0 } NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+
+2. Menyorot/Mewarnai Kata yang Dicari
+Jika Anda ingin tetap mencetak semua baris (1332–1336), tetapi **kata yang dicari diberi warna merah** agar mudah dilihat di terminal, Anda bisa memanfaatkan fungsi `gsub` bawaan `awk`:
+```bash
+awk 'NR>=1332 { gsub(/format/, "\033[1;31m&\033[0m"); print NR ":" $0 } NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+Note: Ganti kata format pada perintah di atas dengan nama fungsi atau pola yang sedang Anda cari.
+
+3. Pencarian Tidak Sensitif Huruf Besar/Kecil (*Case-Insensitive*)
+Jika Anda lupa apakah fungsi tersebut ditulis dengan huruf besar atau kecil (misal: `Format`, `FORMAT`, atau `format`), Anda bisa menambahkan fungsi `tolower()`:
+```bash
+awk 'NR>=1332 { if (tolower($0) ~ /format/) print NR ":" $0 } NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+
 <br>
 
 ---
