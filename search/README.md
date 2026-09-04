@@ -243,23 +243,37 @@ awk 'NR>=3914; NR==3940{exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-s
 
 <br>
 
+qs:
+```bash
+grep --color=always -n "push_back" $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/base.h
 
+awk 'NR>=1332 { gsub(/format/, "\033[1;31m&\033[0m"); print NR ":" $0 } NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+```
+membuat awk beperilaku sama persis seperti grep
 
+aa:
+Untuk membuat `awk` berperilaku **sama persis seperti `grep --color=always -n "pola"`**, Anda harus melakukan tiga hal di dalam `awk`:
+1. **Memfilter baris**: Hanya cetak baris yang mengandung pola tersebut.
+2. **Menampilkan nomor baris**: Menggunakan format `NR:`.
+3. **Mewarnai pola teks**: Menggunakan kode warna ANSI (`\033[1;31m`) lewat fungsi `gsub`.
 
+Berikut adalah perintah `awk` yang perilakunya identik dengan perintah `grep` Anda untuk mencari kata `"push_back"` pada berkas `base.h`:
+```bash
+awk '/push_back/ { gsub(/push_back/, "\033[1;31m&\033[0m"); print NR ":" $0 }' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/base.h
 
+```
+🔍 Detail Komponen Warna:
+- `\033[1;31m`: Mengaktifkan warna merah tebal (*bold red*) seperti warna bawaan `grep`.
+- `&`: Variabel khusus `awk` yang berarti "teks yang cocok dengan pola" (dalam hal ini `push_back`).
+- `\033[0m`: Mereset warna kembali ke normal agar teks setelahnya tidak ikut berwarna merah.
 
+💡 Tips Gabungan (Mencari Pola + Batasan Baris + Exit)
 
+Jika Anda ingin menggabungkan fitur pencarian ala grep ini dengan **batasan rentang baris (1332–1336) dan fitur `exit`** yang kita bahas sebelumnya di berkas `format.h`, gunakan perintah ini:
+```bash
+awk 'NR>=1332 { if ($0 ~ /push_back/) { gsub(/push_back/, "\033[1;31m&\033[0m"); print NR ":" $0 } } NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
 
-
-
-
-
-
-
-
-
-
-
+```
 
 
 
