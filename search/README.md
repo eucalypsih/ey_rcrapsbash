@@ -140,8 +140,16 @@ sed -n '149,177{=;p;}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/inclu
 Menggunakan `awk` (Direkomendasikan)
 
 Jika Anda ingin nomor baris yang muncul **sesuai dengan nomor asli di dalam file** (baris 149 s.d 177 seperti `grep -n`), `awk` adalah solusi terbaik dan paling efisien.
+
+1. 
 ```bash
 awk 'NR>=149 && NR<=177 {print NR ":" $0}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+
+2. 
+```bash
+awk 'NR>=1332 {print NR ":" $0} NR==1336 {exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
 
 ```
 
