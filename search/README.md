@@ -1,6 +1,9 @@
 
+<br>
 
 ---
+
+<br>
 
 Menampilkan Baris Spesifik Berdasarkan Nomor Baris
 
@@ -27,7 +30,11 @@ sed -n '149,177p' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fm
 
 ```
 
+<br>
+
 ---
+
+<br>
 
 Menggunakan `sed` murni
 
@@ -37,7 +44,11 @@ sed -n '149,177{=;p;}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/inclu
 
 ```
 
+<br>
+
 ---
+
+<br>
 
 Menggunakan `awk` (Direkomendasikan)
 
@@ -47,7 +58,11 @@ awk 'NR>=149 && NR<=177 {print NR ":" $0}' $HOME/.cmake_fetchcontent_cache/fmt-v
 
 ```
 
+<br>
+
 ---
+
+<br>
 
 
 
