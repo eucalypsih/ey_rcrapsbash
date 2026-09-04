@@ -151,8 +151,62 @@ awk 'NR>=149 && NR<=177 {print NR ":" $0}' $HOME/.cmake_fetchcontent_cache/fmt-v
 
 <br>
 
+aa:
+Untuk membuat perilaku `awk` sama persis dengan `sed -n '1332,1336p'`, Anda hanya perlu mencetak barisnya saja **tanpa menambahkan nomor baris (`NR ":"`)**.
+
+Berikut adalah perintah `awk` yang perilakunya 100% identik dengan perintah `sed` tersebut:
+```bash
+awk 'NR>=1332 && NR<=1336' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+
+<br>
+
+---
+
+<br>
+
+Jika berkas `format.h` sangat besar, perintah di atas akan tetap membaca seluruh isi berkas sampai akhir meskipun baris 1336 sudah terlewati. Agar `awk` langsung **berhenti membaca (exit)** setelah baris 1336 (sama seperti efisiensi pada `sed`), Anda bisa menggunakan perintah ini:
+```bash
+awk 'NR>=3914; NR==3940{exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+
+<br>
+
+---
+
+<br>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br>
 
 
 
