@@ -17,8 +17,8 @@ Terminal Ouput:
 2441:    container->push_back(c);
 
 ```
-<code>1816:  FMT_CONSTEXPR void <span style="color: #ff4500; font-weight: bold;">push_back</span>(const T& value) {
-2441:    container-><span style="color: #ff4500; font-weight: bold;">push_back</span>(c);</code>
+<pre><code>1816:  FMT_CONSTEXPR void <span style="color: #ff4500; font-weight: bold;">push_back</span>(const T& value) {
+2441:    container-><span style="color: #ff4500; font-weight: bold;">push_back</span>(c);</code></pre>
 
 
 <br>
