@@ -243,6 +243,9 @@ awk 'NR>=3914; NR==3940{exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-s
 
 <br>
 
+Paling Mudah Dibaca (Gaya Blok Kode)
+
+Jika Anda menyukai kode yang terstruktur dan mudah dipahami secara logika (seperti bahasa pemrograman C atau Python), Anda bisa menggunakan blok aksi `{...}` dengan struktur `if`:
 ```bash
 awk '{if(NR>=1439) print; if(NR==1446) exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
 
@@ -254,6 +257,9 @@ awk '{if(NR>=1439) print; if(NR==1446) exit}' $HOME/.cmake_fetchcontent_cache/fm
 
 <br>
 
+Menggunakan Rentang Operator Koma (Gaya Tradisional)
+
+`awk` memiliki fitur bawaan untuk mendeteksi rentang (*range*) baris menggunakan tanda koma `,`:
 ```bash
 awk 'NR==1439,NR==1446' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
 
