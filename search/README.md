@@ -243,6 +243,28 @@ awk 'NR>=3914; NR==3940{exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-s
 
 <br>
 
+```bash
+awk '{if(NR>=1439) print; if(NR==1446) exit}' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+
+<br>
+
+---
+
+<br>
+
+```bash
+awk 'NR==1439,NR==1446' $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/format.h
+
+```
+
+<br>
+
+---
+
+<br>
+
 qs:
 ```bash
 grep --color=always -n "push_back" $HOME/.cmake_fetchcontent_cache/fmt-v12.2.0/fmt-src/include/fmt/base.h
