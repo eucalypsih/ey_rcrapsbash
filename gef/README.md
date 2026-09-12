@@ -3,6 +3,22 @@
 
 Untuk menginstal **GEF (GDB Enhanced Features)** di Termux, Anda dapat memanfaatkan dukungan Python bawaan GDB yang telah kita bahas sebelumnya. GEF sangat populer di kalangan pengembang dan pegiat *reverse engineering* karena sifatnya yang *architecture-agnostic* (sangat cocok untuk arsitektur ARM/ARM64 pada perangkat Android).
 
+Berikut adalah panduan langkah demi langkah untuk menginstalnya dengan benar di Termux:
+## Langkah 1: Update Repositori dan Instal Dependensi Utama
+Pastikan paket dasar, python, dan perkakas unduhan sudah terinstal dan mutakhir di Termux Anda:
+```bash
+pkg update && pkg upgrade -y
+pkg install binutils wget file python -y
+
+```
+
+## Langkah 2: Instal GDB (GNU Debugger)
+Instal GDB yang nantinya menjadi inang bagi skrip Python milik GEF:
+```bash
+pkg install gdb -y
+
+```
+
 ## Langkah 3: Mengunduh dan Mengonfigurasi GEF
 Cara paling bersih dan aman untuk menginstal GEF di Termux adalah dengan mengunduh berkas `.py` tunggalnya secara langsung dan memasukkannya ke dalam konfigurasi `.gdbinit` lokal Anda:
 ```bash
