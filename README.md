@@ -2,12 +2,14 @@
 
 ```bash
 o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git clone -q --filter=blob:none --no-checkout git@github.com:${o}/${r}.git "$rp" && sleep 0.5 && for cfg in "user.name eucalypsih" "user.email eucalypsih@gmail.com" "gpg.format ssh" "user.signingkey ~/.ssh/id_rsa.pub" "commit.gpgsign true" "gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers";do git -C "$rp" config $cfg && sleep 0.5;done
+
 ```
 `o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git clone -q --filter=blob:none --no-checkout git@github.com:${o}/${r}.git "$rp" && sleep 0.5 && for cfg in "user.name eucalypsih" "user.email eucalypsih@gmail.com" "gpg.format ssh" "user.signingkey ~/.ssh/id_rsa.pub" "commit.gpgsign true" "gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers";do git -C "$rp" config $cfg && sleep 0.5;done`
 
 - `set --no-cone '!/*' '/README.md' '/git/README.md'`
 ```bash
 o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git -C "$rp" sparse-checkout set --no-cone '!/*' '/README.md' '/git/README.md' && sleep 0.5 && git -C "$rp" checkout -f main
+
 ```
 `o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git -C "$rp" sparse-checkout set --no-cone '!/*' '/README.md' '/git/README.md' && sleep 0.5 && git -C "$rp" checkout -f main`
 
