@@ -8,8 +8,8 @@
 
 <br>
 
-### Mengaktifkan Sementara (Lewat Command Mode/Bar)
-### Langsung dari Dalam Editor (Sementara/Sesi Ini)
+## Mengaktifkan Sementara (Lewat Command Mode/Bar)
+## Langsung dari Dalam Editor (Sementara/Sesi Ini)
 Jika Anda hanya ingin mengaktifkannya pada sesi editor yang sedang terbuka:
 1. Buka editor Micro Anda.
 2. Tekan tombol `Ctrl + E` untuk membuka baris perintah (command mode/bar) di bagian bawah.
@@ -28,10 +28,10 @@ setlocal softwrap true
 
 <br>
 
-### Mengaktifkan Permanen (Untuk Seterusnya)
+## Mengaktifkan Permanen (Untuk Seterusnya)
 Agar fitur ini selalu aktif setiap kali Anda membuka aplikasi Micro, Anda bisa mengaturnya secara permanen dengan dua cara:
 
-Cara A: Lewat Command Bar
+### Cara A: Lewat/Melalui Perintah Bar (Command Bar)
 
 1. Buka editor Micro Anda.
 2. Tekan tombol `Ctrl + E` untuk membuka baris perintah (command mode/bar) di bagian bawah.
@@ -50,8 +50,8 @@ set wordwrap true
 
 <br>
 
-Cara B: Mengedit File Konfigurasi (`settings.json`)
-Cara B: Secara Permanen via File Konfigurasi (`settings.json`)
+### Cara B: Mengedit File Konfigurasi (`settings.json`)
+### Cara B: Secara Permanen via File Konfigurasi (`settings.json`)
 Buka atau edit langsung file konfigurasi Micro yang terletak di direktori internal Anda:
 Agar pengaturan ini tidak hilang saat editor ditutup, Anda harus menyimpannya secara permanen.
 Tambahkan atau ubah baris konfigurasi berikut di dalam tanda kurung kurawal `{}`.
@@ -68,6 +68,22 @@ Tambahkan atau ubah baris konfigurasi berikut di dalam tanda kurung kurawal `{}`
 3. Simpan file tersebut.
 
 Setelah opsi ini dimatikan, Micro tidak akan lagi otomatis membuat pasangan penutup saat Anda mengetik `{`, `[`, `(`, `"`, `'`, atau `` `.
+
+<br>
+
+---
+
+<br>
+
+# Beralih Antar Tab
+
+<br>
+
+---
+
+<br>
+
+# Beralih Antar Panel (Layar Terbagi / Split Screen)
 
 <br>
 
