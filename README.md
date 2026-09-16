@@ -6,13 +6,35 @@ o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git 
 ```
 `o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git clone -q --filter=blob:none --no-checkout git@github.com:${o}/${r}.git "$rp" && sleep 0.5 && for cfg in "user.name eucalypsih" "user.email eucalypsih@gmail.com" "gpg.format ssh" "user.signingkey ~/.ssh/id_rsa.pub" "commit.gpgsign true" "gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers";do git -C "$rp" config $cfg && sleep 0.5;done`
 
-- `set --no-cone '!/*' '/README.md' '/git/README.md'`
+---
+
+- `set --no-cone '!/*' '/README.md'`
 ```bash
-o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git -C "$rp" sparse-checkout set --no-cone '!/*' '/README.md' '/git/README.md' && sleep 0.5 && git -C "$rp" checkout -f main
+o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git -C "$rp" sparse-checkout set --no-cone '!/*' '/README.md' && sleep 0.5 && git -C "$rp" checkout -f main
 
 ```
-`o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git -C "$rp" sparse-checkout set --no-cone '!/*' '/README.md' '/git/README.md' && sleep 0.5 && git -C "$rp" checkout -f main`
+`o="eucalypsih";r="ey_rcrapsbash";rp="/data/data/com.termux/files/home/${r}";git -C "$rp" sparse-checkout set --no-cone '!/*' '/README.md' && sleep 0.5 && git -C "$rp" checkout -f main`
 
+---
+
+```bash
+o="eucalypsih";r="/ey_rcrapsbash";rp="/data/data/com.termux/files/home${r}";sd="${rp}/diff";ls $sd
+
+```
+`o="eucalypsih";r="/ey_rcrapsbash";rp="/data/data/com.termux/files/home${r}";sd="${rp}/diff";ls $sd`
+
+---
+
+- `set --no-cone '!/*' '/README.md'` `add '/README.md'`
+- `set --no-cone '!/*' '/diff/'` `add '/diff/'`
+- `set --no-cone '!/*' '/et_micro/'` `add '/et_micro/'`
+- `set --no-cone '!/*' '/ftp/'` `add '/ftp/'`
+- `set --no-cone '!/*' '/gef/'` `add '/gef/'`
+- `set --no-cone '!/*' '/git/'` `add '/git/'`
+- `set --no-cone '!/*' '/rename/'` `add '/rename/'`
+- `set --no-cone '!/*' '/search/'` `add '/search/'`
+- `set --no-cone '!/*' '/sed/'` `add '/sed/'`
+- `set --no-cone '!/*' '/tar/'` `add '/tar/'`
 
 <br>
 
