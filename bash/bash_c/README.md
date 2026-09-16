@@ -107,8 +107,11 @@ done
 
 ```
 
+---
+
+- `awk 'BEGIN{ORS="\n"} {sub(/\r$/, ""); if(NR>=1) print; if(NR==96) exit}' ${PWD}/main.sh`
 ```bash
-awk 'BEGIN{ORS="\n"} {sub(/\r$/, ""); if(NR>=1) print; if(NR==96) exit}' $HOME/main.sh                                  o="eucalypsih"; r="ey_rcrapsbash";
+o="eucalypsih"; r="ey_rcrapsbash";
 
 # Menggunakan direktori aktif saat skrip dijalankan (pwd)
 rp="${PWD}/${r}"
