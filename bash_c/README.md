@@ -179,7 +179,7 @@ while true; do
     break
   fi
 
-  # Validasi input harus berupa angka dan masuk dalam range array
+  # Validasi input harus berupa angka dan masuk dalam range array (1 sampai 9)
   if [[ "$pilihan" =~ ^[0-9]+$ ]] && [ "$pilihan" -ge 1 ] && [ "$pilihan" -le "${#targets[@]}" ]; then
     # Kurangi 1 karena index array Bash dimulai dari angka 0
     idx=$((pilihan-1))
