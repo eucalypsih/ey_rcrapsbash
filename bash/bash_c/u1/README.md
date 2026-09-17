@@ -356,3 +356,7 @@ while true; do
 done
 
 ```
+
+qa: 
+Apakah Anda membutuhkan bantuan untuk menguji atau menambahkan **fitur penanganan error** lainnya pada skrip ini sebelum dijalankan?
+
