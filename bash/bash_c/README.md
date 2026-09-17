@@ -1573,6 +1573,110 @@ done
 
 
 
+<br>
+
+aa: 
+Untuk menambahkan perbandingan log antara repositori **Local** dan **Remote**, kita bisa memanfaatkan perintah `git log` dengan membandingkan commit terakhir (*HEAD*) dari lokal (`main`) dan remote (`origin/main`).
+
+Dengan menampilkan SHA hash short (7 karakter) dan pesan commit dari kedua sisi secara berdampingan, Anda bisa langsung tahu apakah statusnya sudah sama atau masih ada commit lokal yang belum di-push.
+
+Berikut adalah potongan kode perbaikan khusus untuk **Logika Keluar `[q]`** yang sudah ditambahkan fitur komparasi log real-time beserta konfirmasi `git push`:
+
+### 🛠️ Potongan Kode Perbaikan Khusus (Logika Keluar `[q]`)
+Gantikan blok logika `if [[ "$pilihan" == "q" ... fi` yang lama dengan kode di bawah ini:
+```bash
+  # =====================================================================
+  # POTONGAN KODE PERBAIKAN UNTUK LOGIKA KELUAR [q] (KOMPARASI LOG & AUTO-PUSH)
+  # =====================================================================
+  if [[ "$pilihan" == "q" || "$pilihan" == "Q" ]]; then
+    perubahan_lokal=$(git -C "$rp" status --porcelain 2>/dev/null)
+
+    # 1. JIKA ADA PERUBAHAN YANG BELUM DI-COMMIT
+    if [ -n "$perubahan_lokal" ]; then
+      echo -e "\n${RED}[!] PERINGATAN: Ada file yang telah Anda ubah/tambahkan secara lokal!${NC}"
+      echo "$perubahan_lokal"
+      echo "----------------------------------------"
+      echo "Pilih tindakan Anda:"
+      echo " [1] Simpan perubahan (Commit secara lokal)"
+      echo " [2] Abaikan & Paksa update (Buang hasil editan Anda)"
+      echo " [3] Batalkan Keluar (Kembali ke menu)"
+      echo "----------------------------------------"
+      echo -n "Pilihan Anda (1/2/3): "
+      read -r aksi_keluar
+
+      if [ "$aksi_keluar" == "1" ]; then
+        # Generator Auto-Increment Pesan Commit
+        last_num=$(git -C "$rp" log --format="%s" 2>/dev/null | grep -E "^u[0-9]+$" | head -n 1 | sed 's/^u//')
+        if [[ "$last_num" =~ ^[0-9]+$ ]]; then
+          next_num=$((last_num + 1))
+          auto_msg="u${next_num}"
+        else
+          auto_msg="u1"
+        fi
+
+        echo -e "Pesan otomatis yang disarankan: ${GREEN}${auto_msg}${NC}"
+        echo -n "Tekan [Enter] untuk menggunakan nama di atas, atau ketik pesan manual: "
+        read -r pesan_commit
+        [ -z "$pesan_commit" ] && pesan_commit="$auto_msg"
+        
+        git -C "$rp" add .
+        git -C "$rp" commit -m "$pesan_commit"
+        echo -e "${GREEN}[✓] Perubahan berhasil disimpan ke commit lokal!${NC}"
+      elif [ "$aksi_keluar" == "2" ]; then
+        echo -e "${RED}[!] Membuang perubahan lokal dan melakukan paksa checkout...${NC}"
+        git -C "$rp" checkout -f main 2>/dev/null
+      else
+        echo -e "${YELLOW}[+] Kembali ke menu utama...${NC}"
+        sleep 1; continue
+      fi
+    else
+      # Jika tidak ada uncommitted changes, langsung jalankan checkout sparse
+      git -C "$rp" checkout main 2>/dev/null
+    fi
+
+    # 2. KOMPARASI REAL-TIME: LOG LOCAL VS REMOTE
+    echo -e "\n========================================"
+    echo -e "       PERBANDINGAN STATUS COMMIT       "
+    echo -e "========================================"
+    
+    # Mengambil hash dan subjek commit terakhir dari lokal dan remote
+    local_log=$(git -C "$rp" log -1 --format="%h - %s" main 2>/dev/null)
+    remote_log=$(git -C "$rp" log -1 --format="%h - %s" origin/main 2>/dev/null)
+    
+    echo -e "[Local]  : ${YELLOW}${local_log:-'Belum ada commit'}${NC}"
+    echo -e "[Remote] : ${GREEN}${remote_log:-'Belum ada commit'}${NC}"
+    echo -e "----------------------------------------"
+
+    # Cek apakah lokal berada di depan remote (butuh push)
+    ahead_commits=$(git -C "$rp" rev-list --count origin/main..main 2>/dev/null)
+
+    if [ "${ahead_commits:-0}" -gt 0 ]; then
+      echo -e "${YELLOW}[!] Status: Local Anda lebih maju ${ahead_commits} commit dari Remote.${NC}"
+      echo -n "Apakah Anda yakin ingin melakukan PUSH ke GitHub sekarang? (y/n): "
+      read -r konfirmasi_push
+      
+      if [[ "$konfirmasi_push" =~ ^[yY]$ ]]; then
+        echo -e "${YELLOW}[+] Melakukan git push origin main...${NC}"
+        if git -C "$rp" push origin main; then
+          echo -e "${GREEN}[✓] Push berhasil! Repositori GitHub telah diperbarui.${NC}"
+        else
+          echo -e "${RED}[X] Gagal melakukan push! Periksa koneksi atau kredensial SSH Anda.${NC}"
+        fi
+      else
+        echo -e "${YELLOW}[!] Push dibatalkan. Perubahan Anda tetap tersimpan di lokal.${NC}"
+      fi
+    else
+      echo -e "${GREEN}[✓] Status: Sinkron! Log Local sama dengan Remote.${NC}"
+    fi
+
+    echo -e "\n${GREEN}[✓] Selesai dengan sukses! Keluar dari skrip.${NC}"
+    break
+  fi
+
+```
+
+
+
 
 
 
