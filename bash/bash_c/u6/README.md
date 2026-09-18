@@ -104,7 +104,9 @@ Berikut adalah potongan kode perbaikan total untuk blok logika keluar `[q]`.
 
 ```
 
-
+### 🔍 Apa Saja Perubahan Alurnya?
+1. Visual Log Duluan: Begitu Anda menekan `q`, papan **PERBANDINGAN STATUS COMMIT** langsung tercetak paling atas. Anda bisa melihat status sinkronisasi terakhir sebelum menentukan langkah berikutnya.
+2. Papan Konfirmasi Push Dinamis: Jika Anda memilih opsi `1` untuk melakukan commit baru (misal `u28`), skrip secara cerdas akan memunculkan papan konfirmasi kedua bernama **KONFIRMASI UPLOAD (PUSH)** yang memperlihatkan commit lokal terbaru Anda, lalu menawarkan pilihan untuk langsung mengunggahnya ke GitHub.
 
 
 <br>
