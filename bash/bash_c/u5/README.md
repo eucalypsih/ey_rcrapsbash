@@ -420,7 +420,8 @@ while true; do
 
       echo "----------------------------------------"
       echo -e "Folder tujuan terkunci: ${YELLOW}/${target_folder_path}/${NC}"
-      echo -n "Masukkan NAMA FILE BARU saja (misal: script.py atau main.sh): "
+      # REKOMENDASI TERBAIK: Informatif dengan visual warna hijau pada contoh input
+      echo -e -n "Masukkan NAMA FILE BARU (Bisa + sub-folder baru, contoh: ${GREEN}script.py${NC} atau ${GREEN}u3/README.md${NC}): "
       read -r nama_file_murni
 
       if [ -z "$nama_file_murni" ]; then
