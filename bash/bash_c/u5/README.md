@@ -1,48 +1,123 @@
+# /ey_rcrapsbash/bash/bash_c/u5/README.md
 
+---
 
-Bahkan kode yang kita buat sebelumnya sebenarnya sudah mendukung pembuatan sub-folder baru secara otomatis berkat adanya perintah `mkdir -p "$new_parent_dir"`.
+qa: 
+Jika alur menu pembuatan file baru ini sudah memetakan seluruh sub-folder Anda dengan sempurna, apakah Anda ingin kita terapkan **logika pemetaan gabungan lokal-remote yang sama** untuk menu **`[e]` Edit File** agar file baru buatan lokal Anda juga otomatis langsung terdaftar di menu edit tanpa harus di-*push* dulu ke GitHub?
 
-Namun, di dalam Bash, jika Anda menginput nama file baru yang diawali dengan tanda garis miring seperti `/u3/README.md`, penggabungan jalurnya akan menjadi ganda (misalnya: `/bash/bash_c//u3/README.md`). Tanda garis miring ganda (`//`) ini terkadang bisa membuat Git atau sistem Linux bingung dalam membaca *path* lokal.
+---
 
-Untuk menjamin mekanisme tersebut berjalan **100% mulus dan bebas dari error tanda garis miring ganda**, kita hanya perlu menambahkan baris **pembersihan input teks** (`sed 's|^/||'`) sebelum jalur file digabungkan.
+qs: 
+alur menu pembuatan file baru ini sudah memetakan seluruh sub-folder Saya dengan sempurna, Saya ingin kita terapkan **logika pemetaan gabungan lokal-remote yang sama** untuk menu **[e] Edit File** agar file baru buatan lokal Saya juga otomatis langsung terdaftar di menu edit tanpa harus di-*push* dulu ke GitHub?
 
-Berikut adalah potongan kode perbaikan khusus di area eksekusi nama file (bagian bawah menu `[n]` Anda):
+---
 
-### 🛠️ Potongan Kode Perbaikan (Gantikan baris setelah input read -r nama_file_murni)
-Cari baris `read -r nama_file_murni` pada skrip Anda, lalu ganti kode di bawahnya hingga sebelum kata `continue` dengan potongan kode ini:
+aa: 
+Tentu saja, hal ini sangat disarankan agar menu jelajah file `[e]` menjadi seimbang dengan menu `[n]`. Dengan menggabungkan daftar file dari **Remote (`git ls-tree`)** dan file fisik **Lokal (`find`)**, file baru yang baru saja Anda buat di Termux akan langsung terdaftar di menu secara real-time tanpa perlu di-*push* terlebih dahulu ke GitHub.
+
+Berikut adalah potongan kode perbaikan total untuk blok `if [[ "$pilihan" == "e" || "$pilihan" == "E" ]]; then`. Salin kode ini secara utuh untuk menggantikan fungsi menu `[e]` Anda yang lama:
+
+🛠️ Potongan Kode Perbaikan Khusus Menu Edit (`[e]`)
 ```bash
-      if [ -z "$nama_file_murni" ]; then
-        echo -e "${RED}[X] Nama file tidak boleh kosong!${NC}"
-        sleep 1; continue
+  # =====================================================================
+  # FITUR: JELAJAHI DAN EDIT SELURUH FILE DI FOLDER AKTIF ([e]) - FIX TOTAL
+  # =====================================================================
+  if [[ "$pilihan" == "e" || "$pilihan" == "E" ]]; then
+    if ! command -v micro &> /dev/null; then
+      echo -e "\n${RED}[X] Editor 'micro' belum terinstall! Jalankan 'pkg install micro' terlebih dahulu.${NC}"
+      echo -n "Tekan [Enter] untuk kembali..."
+      read -r; continue
+    fi
+
+    # 1. Kumpulkan folder tingkat pertama yang aktif saat ini
+    active_folders=()
+    for folder in "${targets[@]}"; do
+      if echo "$current_sparse" | grep -qE "^/?${folder}/?$"; then
+        active_folders+=("$folder")
       fi
+    done
 
-      # AMAN & OTOMATIS: Hapus tanda garis miring di awal input jika user mengetik "/u3/README.md"
-      # Ini mengubah "/u3/README.md" menjadi "u3/README.md" agar penggabungan path tidak rusak
-      nama_file_bersih=$(echo "$nama_file_murni" | sed 's|^/||')
+    if [ ${#active_folders[@]} -eq 0 ]; then
+      echo -e "\n${RED}[!] Belum ada folder aktif. Silakan add folder terlebih dahulu.${NC}"
+      echo -n "Tekan [Enter] untuk kembali..."
+      read -r; continue
+    fi
 
-      # Gabungkan jalur lengkap lokal secara presisi
-      full_new_file_path="${rp}/${target_folder_path}/${nama_file_bersih}"
-      
-      # Mengambil path direktori induk (misal: /bash/bash_c/u3)
-      new_parent_dir=$(dirname "$full_new_file_path")
-      
-      # JALUR UTAMA: Membuat semua folder/sub-folder baru secara otomatis jika belum ada
-      mkdir -p "$new_parent_dir"
-      
-      # Membuat file kosong tiruan agar micro bisa langsung menyimpannya
-      touch "$full_new_file_path"
+    echo -e "\n${YELLOW}[+] Memetakan seluruh file lokal dan remote secara rekursif...${NC}"
 
-      echo -e "\n${YELLOW}[+] Membuat struktur direktori dan membuka file dengan micro...${NC}"
+    # 2. Tarik daftar file dari REMOTE (GitHub)
+    mapfile -t remote_files < <(git -C "$rp" ls-tree -r --name-only "origin/${current_branch}" 2>/dev/null)
+
+    # 3. Tarik daftar file dari LOKAL (Termux) - PERBAIKAN PARAMETER: -type f
+    local_files=()
+    if [ -d "$rp" ]; then
+      mapfile -t local_files < <(find "$rp" -type f 2>/dev/null | sed "s|^${rp}/||" | grep -v "^\.git")
+    fi
+
+    # 4. Gabungkan Remote & Lokal ke dalam daftar validasi berdasarkan folder tingkat pertama yang aktif
+    all_combined_files=()
+    for file in "${remote_files[@]}" "${local_files[@]}"; do
+      [ -z "$file" ] && continue
+      
+      for active_dir in "${active_folders[@]}"; do
+        # Pastikan file berada di dalam salah satu folder induk yang aktif
+        if [[ "$file" == "$active_dir"/* ]]; then
+          # Masukkan ke daftar gabungan (pastikan tidak duplikat)
+          if [[ ! " ${all_combined_files[*]} " =~ " ${file} " ]]; then
+            all_combined_files+=("$file")
+          fi
+          break
+        fi
+      done
+    done
+
+    # Urutkan secara alfabetis dan unik agar rapi
+    IFS=$'\n' valid_files=($(sort -u <<<"${all_combined_files[*]}")); unset IFS
+
+    if [ ${#valid_files[@]} -eq 0 ]; then
+      echo -e "\n${YELLOW}[!] Folder aktif Anda kosong (tidak ada file untuk diedit).${NC}"
+      echo -n "Tekan [Enter] untuk kembali..."
+      read -r; continue
+    fi
+
+    # 5. Tampilkan sub-menu seluruh file yang tersedia untuk diedit
+    clear
+    echo "========================================"
+    echo "   DAFTAR FILE YANG DAPAT DIEDIT        "
+    echo "========================================"
+    for i in "${!valid_files[@]}"; do
+      printf " [%d] %s\n" $((i+1)) "${valid_files[$i]}"
+    done
+    echo "----------------------------------------"
+    echo -n "Pilih nomor file yang ingin diedit dengan micro: "
+    read -r num_pilihan
+
+    if [[ "$num_pilihan" =~ ^[0-9]+$ ]] && [ "$num_pilihan" -ge 1 ] && [ "$num_pilihan" -le "${#valid_files[@]}" ]; then
+      idx=$((num_pilihan - 1))
+      selected_file="${valid_files[$idx]}"
+      full_file_path="${rp}/${selected_file}"
+
+      # Jaga-jaga buat folder induk lokal fisik jika membuka file remote yang belum ter-checkout lokal
+      parent_dir=$(dirname "$full_file_path")
+      mkdir -p "$parent_dir"
+      touch "$full_file_path"
+
+      echo -e "\n${YELLOW}[+] Membuka ${selected_file} dengan micro...${NC}"
       sleep 0.5
-      micro "$full_new_file_path"
+      micro "$full_file_path"
+    else
+      echo -e "\n${RED}[X] Pilihan tidak valid.${NC}"
+      sleep 1
+    fi
+    continue
+  fi
 
 ```
 
-### 🔍 Cara Kerja Mekanisme Ini:
-1. `sed 's|^/||'`: Jika Anda mengetik `/u3/README.md`, skrip akan otomatis memotong garis miring paling depan menjadi `u3/README.md`. Jika Anda mengetik biasa tanpa garis miring (`u3/README.md`), teks tidak akan diubah.
-2. `mkdir -p`: Parameter `-p` (parents) bertugas membuat folder `u3` secara instan di dalam folder `bash/bash_c/` tanpa memedulikan apakah folder `u3` tersebut sudah ada atau belum.
-3. micro: Editor teks akan terbuka dengan jalur yang sudah matang dan siap Anda isi.
-Sekarang Anda bisa membuat file sekaligus sub-folder baru sedalam apa pun (misal: `/u3/u4/u5/script.sh`).
+### 🔍 Apa yang Dioptimalkan pada Fitur Ini?
+1. `find "$rp" -type f`: Menggunakan parameter `-type f` (files) untuk memindai seluruh dokumen lokal secara fisik, melengkapi data remote dari `ls-tree`.
+2. Sinkronisasi Otomatis: Ketika Anda membuat file `/u3/README.md` lewat menu `[n]`, file tersebut akan langsung muncul di menu `[e]` pada eksekusi berikutnya tanpa harus melewati proses push/commit.
+3. Proteksi File Remote: Jika Anda memilih file yang statusnya ada di remote tapi belum diunduh ke Termux, perintah `mkdir -p` dan `touch` akan mempersiapkan jalurnya secara instan agar editor micro tidak *crash*.
 
 <br>
 
@@ -380,14 +455,17 @@ while true; do
     continue
   fi
 
-  # FITUR: JELAJAHI DAN EDIT SELURUH FILE DI FOLDER AKTIF ([e])
+  # =====================================================================
+  # FITUR: JELAJAHI DAN EDIT SELURUH FILE DI FOLDER AKTIF ([e]) - FIX TOTAL
+  # =====================================================================
   if [[ "$pilihan" == "e" || "$pilihan" == "E" ]]; then
     if ! command -v micro &> /dev/null; then
-      echo -e "\n${RED}[X] Editor 'micro' belum terinstall!${NC}"
+      echo -e "\n${RED}[X] Editor 'micro' belum terinstall! Jalankan 'pkg install micro' terlebih dahulu.${NC}"
       echo -n "Tekan [Enter] untuk kembali..."
       read -r; continue
     fi
 
+    # 1. Kumpulkan folder tingkat pertama yang aktif saat ini
     active_folders=()
     for folder in "${targets[@]}"; do
       if echo "$current_sparse" | grep -qE "^/?${folder}/?$"; then
@@ -401,25 +479,44 @@ while true; do
       read -r; continue
     fi
 
-    echo -e "\n${YELLOW}[+] Memetakan seluruh file dan sub-folder secara rekursif...${NC}"
-    mapfile -t all_remote_files < <(git -C "$rp" ls-tree -r --name-only origin/main 2>/dev/null)
+    echo -e "\n${YELLOW}[+] Memetakan seluruh file lokal dan remote secara rekursif...${NC}"
 
-    valid_files=()
-    for file in "${all_remote_files[@]}"; do
+    # 2. Tarik daftar file dari REMOTE (GitHub)
+    mapfile -t remote_files < <(git -C "$rp" ls-tree -r --name-only "origin/${current_branch}" 2>/dev/null)
+
+    # 3. Tarik daftar file dari LOKAL (Termux) - PERBAIKAN PARAMETER: -type f
+    local_files=()
+    if [ -d "$rp" ]; then
+      mapfile -t local_files < <(find "$rp" -type f 2>/dev/null | sed "s|^${rp}/||" | grep -v "^\.git")
+    fi
+
+    # 4. Gabungkan Remote & Lokal ke dalam daftar validasi berdasarkan folder tingkat pertama yang aktif
+    all_combined_files=()
+    for file in "${remote_files[@]}" "${local_files[@]}"; do
+      [ -z "$file" ] && continue
+      
       for active_dir in "${active_folders[@]}"; do
+        # Pastikan file berada di dalam salah satu folder induk yang aktif
         if [[ "$file" == "$active_dir"/* ]]; then
-          valid_files+=("$file")
+          # Masukkan ke daftar gabungan (pastikan tidak duplikat)
+          if [[ ! " ${all_combined_files[*]} " =~ " ${file} " ]]; then
+            all_combined_files+=("$file")
+          fi
           break
         fi
       done
     done
 
+    # Urutkan secara alfabetis dan unik agar rapi
+    IFS=$'\n' valid_files=($(sort -u <<<"${all_combined_files[*]}")); unset IFS
+
     if [ ${#valid_files[@]} -eq 0 ]; then
-      echo -e "\n${YELLOW}[!] Folder aktif Anda kosong secara remote (belum ada file).${NC}"
-      echo -n "Tekan [Enter]のために kembali..."
+      echo -e "\n${YELLOW}[!] Folder aktif Anda kosong (tidak ada file untuk diedit).${NC}"
+      echo -n "Tekan [Enter] untuk kembali..."
       read -r; continue
     fi
 
+    # 5. Tampilkan sub-menu seluruh file yang tersedia untuk diedit
     clear
     echo "========================================"
     echo "   DAFTAR FILE YANG DAPAT DIEDIT        "
@@ -431,14 +528,12 @@ while true; do
     echo -n "Pilih nomor file yang ingin diedit dengan micro: "
     read -r num_pilihan
 
-    # =====================================================================
-    # POTONGAN KODE PERBAIKAN UNTUK PILIHAN MENU NOMOR FILE (MENU EDIT)
-    # =====================================================================
     if [[ "$num_pilihan" =~ ^[0-9]+$ ]] && [ "$num_pilihan" -ge 1 ] && [ "$num_pilihan" -le "${#valid_files[@]}" ]; then
       idx=$((num_pilihan - 1))
       selected_file="${valid_files[$idx]}"
       full_file_path="${rp}/${selected_file}"
 
+      # Jaga-jaga buat folder induk lokal fisik jika membuka file remote yang belum ter-checkout lokal
       parent_dir=$(dirname "$full_file_path")
       mkdir -p "$parent_dir"
       touch "$full_file_path"
@@ -452,6 +547,7 @@ while true; do
     fi
     continue
   fi
+
 
   # =====================================================================
   # POTONGAN KODE PERBAIKAN UNTUK VALIDASI PROSES UTAMA (ADD FOLDER UTAMA)
@@ -482,25 +578,4 @@ done
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<br>
 
