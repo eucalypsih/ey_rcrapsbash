@@ -1,5 +1,76 @@
 
 
+
+
+- `[ -n "$detected_branch" ]`
+memeriksa apakah variabel $detected_branch tidak kosong (memiliki isi/teks).
+
+Dalam skrip Bash/Shell,r `-n` adalah sebuah operator kondisi yang berarti *"not empty"* (tidak kosong) atau *"non-zero length"* (panjang string lebih dari nol).
+
+Berikut penjelasan alurnya berdasarkan potongan kode Anda:
+1. `detected_branch=$(...)`: Baris pertama mencoba mengambil nama branch Git yang aktif saat ini dari repositori di dalam direktori `$rp`.
+2. `[ -n "$detected_branch" ]`: Baris kedua memeriksa hasilnya.
+- Jika branch ditemukan (misal berisi `main` atau `develop`), kondisi bernilai **TRUE** (sukses/exit code 0)
+- Jika branch tidak ditemukan (misal karena direktori tersebut bukan repositori Git, atau terjadi eror sehingga variabelnya kosong), kondisi bernilai **FALSE** (gagal/exit code 1).
+
+### Contoh Penggunaan Biasanya
+Perintah ini hampir selalu diikuti oleh logika pencabangan (`if`) atau operator kondisi untuk menentukan langkah selanjutnya. Contohnya:
+```bash
+if [ -n "$detected_branch" ]; then
+    echo "Branch saat ini adalah: $detected_branch"
+else
+    echo "Gagal mendeteksi branch atau folder bukan repositori Git."
+fi
+
+```
+Atau menggunakan operator singkat `&&` (and):
+```bash
+[ -n "$detected_branch" ] && echo "Lanjut proses untuk branch $detected_branch"
+
+```
+
+---
+
+- `[ -z "$detected_branch" ]`
+memeriksa apakah sebuah variabel kosong (*zero length* atau panjang string-nya nol).
+
+Jika `-n` artinya *"apakah ada isinya?"*, maka `-z` artinya *"apakah kosong?"*.
+
+### Contoh Perbandingan dalam Kode
+Jika Anda ingin mendeteksi eror ketika branch Git gagal ditemukan, Anda bisa menulisnya dengan dua cara ini (keduanya menghasilkan tujuan yang sama):
+
+Menggunakan `-z` (Memeriksa jika kosong):
+```bash
+if [ -z "$detected_branch" ]; then
+    echo "Eror: Ini bukan repositori Git atau branch tidak ditemukan!"
+    exit 1
+fi
+
+```
+Menggunakan `-n` dengan tanda seru `!` (Negasi/Kebalikan):
+```bash
+if [ ! -n "$detected_branch" ]; then
+    echo "Eror: Ini bukan repositori Git atau branch tidak ditemukan!"
+    exit 1
+fi
+
+```
+### Tips Keamanan (Tanda Kutip)
+Sama seperti `-n`, saat menggunakan `-z` selalu bungkus variabel dengan tanda kutip ganda (`"$variabel"`). Jika tidak, Bash akan eror atau salah membaca kondisi jika variabel tersebut benar-benar kosong atau mengandung spasi.
+
+
+
+
+
+
+
+
+
+
+
+---
+
+
 ```bash
 # 1. Tentukan daftar folder/file yang ingin dimasukkan
 targets=("README.md" "diff" "et_micro" "ftp" "gef" "git" "rename" "search" "sed" "tar")
