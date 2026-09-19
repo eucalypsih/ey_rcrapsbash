@@ -47,6 +47,31 @@ Sekarang struktur pencarian sub-folder Anda sudah sangat kokoh dan aman dari dat
 
 <br>
 
+## Bug Pengurutan Array pada Opsi `[eE]` (Jelajahi File)
+## Antisipasi Nama File Ber-spasi pada Opsi `[eE]` (Jelajahi File)
+- Masalah: Pada bagian pengurutan file `valid_files`, Anda menggunakan sintaks:
+```bash
+# Urutkan secara alfabetis dan unik agar rapi
+IFS=$'\n' valid_files=($(sort -u <<<"${all_combined_files[*]}")); unset IFS
+
+```
+Cara ini memecah string berdasarkan spasi standar. Jika nama file atau folder Anda mengandung spasi (misalnya `Catatan Kuliah/script.py`), nama tersebut akan pecah menjadi dua baris menu yang rusak.
+- Solusi: Gunakan teknik `printf '%s\n'` dan ubah IFS (Internal Field Separator) untuk sementara waktu agar aman terhadap spasi, persis seperti yang sudah Anda lakukan dengan sukses di menu `[nN]`.
+
+Logika pemrosesan array untuk mengurutkan file (`valid_files`) diubah menggunakan `printf` dan `IFS` agar nama file yang mengandung spasi tidak pecah menjadi baris menu yang rusak.
+```bash
+# PERBAIKAN UTAMA DI OPSI [E]: Urutkan dengan aman menggunakan IFS untuk menangani spasi nama file
+IFS=$'\n' valid_files=($(printf '%s\n' "${all_combined_files[@]}" | sort -u)); unset IFS
+
+```
+
+
+<br>
+
+---
+
+<br>
+
 ```bash
 o="eucalypsih"; r="ey_rcrapsbash";
 
