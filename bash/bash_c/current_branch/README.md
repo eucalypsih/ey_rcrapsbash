@@ -61,3 +61,25 @@ fi
 sleep 2.5
 
 ```
+
+```bash
+# =====================================================================
+# TAMBAHAN PERBAIKAN: Deteksi branch utama secara dinamis / otomatis
+# =====================================================================
+if [ -d "$rp/.git" ]; then
+    # Ambil nama branch aktif saat ini
+    detected_branch=$(git -C "$rp" branch --show-current 2>/dev/null)
+    
+    # Jika branch kosong (Detached HEAD), ambil default branch dari remote HEAD
+    if [ -z "$detected_branch" ]; then
+        detected_branch=$(git -C "$rp" rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's|^origin/||')
+    fi
+    current_branch="${detected_branch:-main}"
+else
+    current_branch="main"
+fi
+# =====================================================================
+
+```
+
+
