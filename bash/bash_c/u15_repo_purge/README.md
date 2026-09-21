@@ -1,3 +1,213 @@
+
+qc:
+menambahkan fungsi **hapus folder fisik sekalian** apabila user memilih opsi hapus
+
+---
+
+aa: 
+Berikut adalah pembaruan kode bagian manajemen repositori yang telah dilengkapi dengan fungsi **penghapusan folder fisik lokal sekalian** (`rm -rf`) secara opsional.
+
+Demi keamanan data Anda agar tidak terjadi salah hapus, skrip ini akan memberikan pertanyaan konfirmasi kedua yang sangat jelas sebelum menghapus folder fisik beserta seluruh isi file proyek tersebut dari penyimpanan lokal.
+```bash
+o="eucalypsih"
+
+repo_file="rf.txt"
+
+
+# Kode warna untuk notifikasi terminal
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+CYAN='\e[36m' # warna CYAN untuk indikasi proses berjalan
+NC='\033[0m' # No Color (Reset)
+
+# =====================================================================
+# AMAN & DINAMIS: MEMBACA DAN MEMILIH REPOSITORI DARI FILE EKSTERNAL
+# =====================================================================
+# Pengaman awal: Membuat file repo.txt jika belum ada
+if [ ! -f "$repo_file" ]; then
+  echo -e "${RED}[X] ERROR: File eksternal '${repo_file}' tidak ditemukan!${NC}"
+  echo -e "${YELLOW}[+] File konfigurasi '${repo_file}' tidak ditemukan.${NC}"
+  echo -e "${CYAN}[~] Membuat file '${repo_file}' default otomatis...${NC}"
+  echo -e "ey_rcrapsbash\ney_repo2\ney_repo3\ney_repo4" > "$repo_file"
+  sleep 1
+fi
+
+# =====================================================================
+# MENU SELEKSI & MANAJEMEN REPOSITORI UTAMA (BERWARNA)
+# =====================================================================
+while true; do
+  # Membaca daftar repo dari file ke dalam array secara dinamis setiap kali menu diulang
+  # Membaca isi repo.txt ke dalam array
+  mapfile -t daftar_repo < "$repo_file"
+
+  # Bersihkan elemen array yang kosong
+  # Menyaring elemen array dari baris kosong
+  valid_repos=()
+  for repo in "${daftar_repo[@]}"; do
+    [ -n "$repo" ] && valid_repos+=("$repo")
+  done
+
+  clear
+  echo -e "${CYAN}========================================${NC}"
+  echo -e "${CYAN}       PILIH REPOSITORI UTAMA           ${NC}"
+  echo -e "${CYAN}========================================${NC}"
+  echo -e "${YELLOW}Daftar Repositori di GitHub (${o}):${NC}"
+
+  if [ ${#valid_repos[@]} -eq 0 ]; then
+    echo -e "${RED}[X] ERROR: File '${repo_file}' kosong! Silakan isi nama repositori terlebih dahulu.${NC}"
+    echo -e " ${RED}[!] Kosong: Belum ada repositori terdaftar${NC}"
+  else
+    for i in "${!valid_repos[@]}"; do
+      # Cek apakah folder repo lokal fisik sudah ada/pernah di-clone sebelumnya
+      if [ -d "${PWD}/${valid_repos[$i]}/.git" ]; then
+        printf " [%d] %-20s %b[ lokal aktif ]%b\n" $((i+1)) "${valid_repos[$i]}" "${GREEN}" "${NC}"
+      else
+        printf " [%d] %-20s\n" $((i+1)) "${valid_repos[$i]}"
+      fi
+    done
+  fi
+
+  echo -e "${CYAN}----------------------------------------${NC}"
+  echo -e " [t] ${YELLOW}Tambah Repositori Baru${NC}"
+  echo -e " [h] ${RED}Hapus Repo dari Daftar${NC}"
+  echo -e " [q] ${RED}Keluar dari Skrip${NC}"
+  echo -e "${CYAN}========================================${NC}"
+  echo -n "Masukkan pilihan Anda: "
+  read -r repo_pilihan
+
+  # OPSI KELUAR
+  if [[ "$repo_pilihan" =~ ^[qQ]$ ]]; then
+    echo -e "\n${RED}[+] Proses dibatalkan. Keluar dari skrip.${NC}"
+    exit 0
+  fi
+
+  # OPSI TAMBAH REPO BARU
+  if [[ "$repo_pilihan" =~ ^[tT]$ ]]; then
+    echo -e "${CYAN}----------------------------------------${NC}"
+    echo -e -n "${YELLOW}[+] Masukkan nama repositori baru (tanpa .git): ${NC}"
+    read -r repo_baru
+
+    # Validasi agar input tidak kosong dan tidak mengandung spasi liar
+    repo_bersih=$(echo "$repo_baru" | tr -d '[:space:]')
+
+    if [ -z "$repo_bersih" ]; then
+      echo -e "${RED}[X] Error: Nama repositori tidak boleh kosong!${NC}"
+      sleep 1.5
+    else
+      # Cek apakah repo sudah ada di dalam daftar untuk mencegah duplikasi
+      if [[ " ${valid_repos[*]} " =~ " ${repo_bersih} " ]]; then
+        echo -e "${YELLOW}[!] Peringatan: Repositori '${repo_bersih}' sudah ada dalam daftar.${NC}"
+      else
+        # Memasukkan nama repo baru ke baris paling bawah file repo.txt
+        echo "$repo_bersih" >> "$repo_file"
+        echo -e "${GREEN}[✓] Sukses: '${repo_bersih}' berhasil ditambahkan ke ${repo_file}.${NC}"
+      fi
+      sleep 1.5
+    fi
+    continue # Ulangi loop menu untuk memuat ulang daftar repo terbaru
+  fi
+
+  # OPSI HAPUS REPO DARI DAFTAR (Fitur Baru)
+
+  # PROSES SELEKSI REPOSITORI BERDASARKAN ANGKA
+  if [[ "$repo_pilihan" =~ ^[hH]$ ]]; then
+    if [ ${#valid_repos[@]} -eq 0 ]; then
+      echo -e "${RED}[X] Error: Tidak ada repositori yang bisa dihapus!${NC}"
+      sleep 1.5
+      continue
+    fi
+
+    echo -e "${RED}----------------------------------------${NC}"
+    echo -e "${YELLOW}[!] MODE HAPUS: Pilih nomor repo yang ingin dibuang dari daftar:${NC}"
+    echo -n "Masukkan nomor repo: "
+    read -r hapus_num
+
+    if [[ "$hapus_num" =~ ^[0-9]+$ ]] && [ "$hapus_num" -ge 1 ] && [ "$hapus_num" -le "${#valid_repos[@]}" ]; then
+      idx_hapus=$((hapus_num - 1))
+      repo_terhapus="${valid_repos[$idx_hapus]}"
+      target_folder_fisik="${PWD}/${repo_terhapus}"
+
+      echo -e "${RED}[!] Anda yakin ingin menghapus '${repo_terhapus}' dari daftar repo.txt? (y/n): ${NC}"
+      read -r konfirmasi_hapus
+
+      if [[ "$konfirmasi_hapus" =~ ^[yY]$ ]]; then
+        # Membuat file sementara untuk menulis ulang daftar tanpa item yang dihapus
+        tmp_file=$(mktemp)
+        for repo in "${valid_repos[@]}"; do
+          if [ "$repo" != "$repo_terhapus" ]; then
+            echo "$repo" >> "$tmp_file"
+          fi
+        done
+        mv "$tmp_file" "$repo_file"
+        echo -e "${GREEN}[✓] Sukses: '${repo_terhapus}' telah dihapus dari daftar repo.txt.${NC}"
+
+        # =============================================================
+        # FITUR BARU: SISTEM PURGE FOLDER FISIK LOKAL
+        # =============================================================
+        if [ -d "$target_folder_fisik" ]; then
+          echo -e "\n${RED}[⚠️] PERINGATAN KRITIS: Folder lokal fisik terdeteksi di:${NC}"
+          echo -e "${YELLOW}     -> ${target_folder_fisik}${NC}"
+          echo -e "${RED}[!] Apakah Anda ingin MENGHAPUS PERMANEN folder fisik tersebut beserta seluruh representsi filenya? (y/n): ${NC}"
+          read -r konfirmasi_fisik
+
+          if [[ "$konfirmasi_fisik" =~ ^[yY]$ ]]; then
+            echo -e "${RED}[-] Memusnahkan folder fisik lokal: ${repo_terhapus}...${NC}"
+            rm -rf "$target_folder_fisik"
+            echo -e "${GREEN}[✓] Folder fisik berhasil dihapus sepenuhnya dari penyimpanan.${NC}"
+          else
+            echo -e "${YELLOW}[i] Folder fisik lokal dipertahankan dan tetap aman.${NC}"
+          fi
+        fi
+        # =============================================================
+      else
+        echo -e "${YELLOW}[+] Penghapusan dibatalkan.${NC}"
+      fi
+    else
+      echo -e "${RED}[X] Pilihan nomor tidak valid!${NC}"
+    fi
+    sleep 2
+    continue
+  fi
+
+  # PROSES SELEKSI REPOSITORI BERDASARKAN ANGKA
+  if [[ "$repo_pilihan" =~ ^[0-9]+$ ]] && [ "$repo_pilihan" -ge 1 ] && [ "$repo_pilihan" -le "${#valid_repos[@]}" ]; then
+    idx=$((repo_pilihan - 1))
+    r="${valid_repos[$idx]}"
+
+    echo -e "\n${GREEN}[✓] Repositori dipilih: ${YELLOW}${r}${NC}"
+    echo -e "${CYAN}[~] Mengunci jalur kerja lokal proyek...${NC}"
+    sleep 1
+    break # Keluar dari loop seleksi untuk melanjutkan ke alur utama skrip
+  else
+    echo -e "${RED}[X] Pilihan tidak valid! Masukkan nomor repo, [t], [h], atau [q].${NC}"
+    sleep 1.5
+  fi
+done
+
+# Menggunakan direktori aktif saat skrip dijalankan (pwd)
+# Menentukan jalur kerja repositori yang dipilih di dalam direktori aktif saat ini
+rp="${PWD}/${r}"
+
+# =====================================================================
+# TAMBAHAN PERBAIKAN: Deteksi branch utama secara dinamis / default
+# =====================================================================
+current_branch="main" # Nilai default awal
+
+```
+
+### 💡 Mekanisme Keamanan Ganda yang Diterapkan:
+1. Pengecekan Folder Eksistensial (`-d`): Skrip tidak akan menanyakan opsi hapus folder jika folder tersebut memang belum pernah diklon atau dibuat di penyimpanan lokal Anda. Menu konfirmasi ini hanya akan muncul secara cerdas saat status repo berlabel `[ lokal aktif ]`.
+2. Double Confirmation Krusial: Menghapus direktori dengan `rm -rf` bersifat permanen dan tidak bisa dibatalkan (*irreversible*). Oleh karena itu, skrip memisahkan konfirmasi hapus teks di repo.txt dengan konfirmasi hapus folder fisik agar Anda tidak kehilangan data secara tidak sengaja.
+Sekarang manajemen repositori eksternal dan pembersihan folder fisiknya telah berjalan sinkron
+
+<br>
+
+---
+
+<br>
+
+```bash
 o="eucalypsih"
 
 repo_file="rf.txt"
@@ -662,3 +872,7 @@ while true; do
   esac
 
 done
+
+```
+
+<br>
