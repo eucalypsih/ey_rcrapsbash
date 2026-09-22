@@ -217,7 +217,7 @@ else
   # PERBAIKAN: Menangani kondisi jika direktori .git tidak ada
   # Pengecekan awal dilewati jika folder belum di-clone
   echo -e "${CYAN}[~] Menyiapkan alur kloning untuk direktori baru...${NC}"
-  exit 1
+  # exit 1  <-- HAPUS ATAU KOMENTARI BARIS INI
 fi # end if git dir check
 
 sleep 2.5
