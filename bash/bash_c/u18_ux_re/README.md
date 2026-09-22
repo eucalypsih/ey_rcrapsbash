@@ -398,7 +398,7 @@ while true; do
 
       # Mengambil hash dan subjek commit terakhir dari lokal dan remote
       local_log=$(git -C "$rp" log -1 --format="%h - %s" "$current_branch" 2>/dev/null)
-      remote_log=$(git -C "$rp" log -n --format="%h - %s" "origin/${current_branch}" 2>/dev/null)
+      remote_log=$(git -C "$rp" log -1 --format="%h - %s" "origin/${current_branch}" 2>/dev/null)
   
       echo -e "[Local]  : ${YELLOW}${local_log:-'Belum ada commit'}${NC}"
       echo -e "[Remote] : ${GREEN}${remote_log:-'Belum ada commit'}${NC}"
