@@ -47,12 +47,19 @@ replace 'log_info "(.*?)"' 'echo -e "\$\{CYAN\}\[~\] $1\$\{NC\}"'
 
 ```
 
-- ! 
+- ?! 
 ```bash
 replace 'echo -e "\$\{YELLOW\}(?!\[\+\]|\[!\]|\[~\])(.*?)\$\{NC\}"' 'log_abort "\\n$1"'
 
 ```
 
+---
+
+- !
+```bash
+replace 'echo -e "\$\{YELLOW\}(!\[\+\]|\[!\]|\[~\])(.*?)\$\{NC\}"' 'log_abort "\\n$1"'
+
+```
 
 
 
