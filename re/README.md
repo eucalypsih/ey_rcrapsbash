@@ -41,7 +41,11 @@ replace 'echo -e "\$\{CYAN\}\[~\] (.*?)\$\{NC\}"' 'log_info "$1"'
 ```
 `log_info "Menyiapkan inisialisasi awal sparse-checkout..."`
 
+reverse
+```bash
+replace 'log_info "(.*?)"' 'echo -e "\$\{CYAN\}\[~\] $1\$\{NC\}"'
 
+```
 
 
 <br>
