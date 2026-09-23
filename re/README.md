@@ -34,9 +34,12 @@ Tekan `Ctrl+E` untuk membuka command mode di bagian bawah micro, lalu ketik peri
 replace "echo -e \"\$\{CYAN\}\[~\] ([^\"\r\n]+)\$\{NC\}\"" "log_info \"$1\""
 
 ```
+atau
+```bash
+replace 'echo -e "\$\{CYAN\}\[~\] (.*?)\$\{NC\}"' 'log_info "$1"'
 
-
-
+```
+`log_info "Menyiapkan inisialisasi awal sparse-checkout..."`
 
 
 
