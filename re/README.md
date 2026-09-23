@@ -9,6 +9,12 @@
 
 <br>
 
+qs: 
+```bash
+echo -e "${CYAN}[~] Menyiapkan inisialisasi awal sparse-checkout...${NC}"
+
+```
+
 Untuk melakukan **Find & Replace** menggunakan regex di text editor micro, Anda perlu memanfaatkan fitur *Capture Group* (mengurung teks yang ingin dipertahankan dengan tanda kurung `(...)`).
 
 Berikut adalah pola pencarian dan penggantian yang harus Anda masukkan di micro:
@@ -17,6 +23,7 @@ Berikut adalah pola pencarian dan penggantian yang harus Anda masukkan di micro:
 Tekan `Ctrl+F` atau buka command mode (tekan `Ctrl+E` lalu ketik `find`), kemudian masukkan regex berikut:
 ```bash
 echo -e "\$\{CYAN\}\[~\] ([^"\r\n]+)\$\{NC\}"
+echo -e "\$\{CYAN\}\[~\].*?\$\{NC\}"
 
 ```
 > 💡 Catatan: Tanda kurung `([^"\r\n]+)` berfungsi untuk "menangkap" teks pesan di dalamnya (misalnya: Menyiapkan inisialisasi awal sparse-checkout...) agar bisa dipanggil kembali saat proses replace.
