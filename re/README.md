@@ -61,7 +61,11 @@ replace 'echo -e "\$\{YELLOW\}(!\[\+\]|\[!\]|\[~\])(.*?)\$\{NC\}"' 'log_abort "\
 
 ```
 
+- ^
+```bash
+replace 'echo -e "\$\{YELLOW\}([^\[].*?)\$\{NC\}"' 'log_abort "\\n$1"'
 
+```
 
 
 
