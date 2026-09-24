@@ -69,10 +69,14 @@ replace 'echo -e "\$\{YELLOW\}([^\[].*?)\$\{NC\}"' 'log_abort "\\n$1"'
 
 - [✓]
 ```bash
-replace 'echo -e "\$\{GREEN\}\[✓\] (.*?)\$\{NC\}"' 'log_info "Sukses: $1"'
+replace 'echo -e "\$\{GREEN\}\[✓\] (.*?)\$\{NC\}"' 'log_ok "$1"'
 
 ```
 
+```bash
+replace 'log_ok "(.*?)"' 'echo -e "\$\{GREEN\}\[✓\] $1\$\{NC\}"'
+
+```
 
 
 
