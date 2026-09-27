@@ -582,7 +582,7 @@ while true; do
   
       echo -e "[Local]  : ${YELLOW}${local_log:-'Belum ada commit'}${NC}"
       echo -e "[Remote] : ${GREEN}${remote_log:-'Belum ada commit'}${NC}"
-      _ic "----------------------------------------"
+      _cc "----------------------------------------"
 
       # Cek apakah lokal berada di depan remote (butuh push)
       ahead_commits=$(git -C "$rp" rev-list --count "origin/${current_branch}..${current_branch}" 2>/dev/null)
