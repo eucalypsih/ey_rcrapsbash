@@ -1,4 +1,6 @@
 
+
+
 ```bash
 #!/bin/bash
 
@@ -14,7 +16,10 @@ if [ ! -f "$repo_file" ]; then
   cat << EOF > "$repo_file"
 eucalypsih
     ey_rcrapsbash
-    ey_repo2
+    ey_rcrapsc
+    eucalypsih_rcrapsbash
+    ey_tp
+    eucalypsih_rcrapskt
 
 owner_lain
     repo1
@@ -934,7 +939,7 @@ while true; do
           fi
         else
           # Jika belum aktif, lakukan proses ADD seperti semula
-          _n "Menambahkan /${selected_folder} ke sparse-checkout..."
+          _ic "Menambahkan /${selected_folder} ke sparse-checkout..."
           if git -C "$rp" sparse-checkout add "/${selected_folder}"; then
             # Paksa penarikan fisik berkas baru dari indeks remote Git
             git -C "$rp" checkout "$current_branch" &>/dev/null
@@ -975,3 +980,10 @@ done # end while menu interaktif
 
 
 
+
+
+
+
+
+
+<br>
