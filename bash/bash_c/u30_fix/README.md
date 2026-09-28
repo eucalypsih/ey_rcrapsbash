@@ -2,8 +2,6 @@
 
 
 
-
-
 ```bash
 #!/bin/bash
 
@@ -47,7 +45,7 @@ _cc() { echo -e "${CYAN}$1${NC}"; } # _color_cyan() { ... }
 _o()       { echo -e "${GREEN}[✓] $1${NC}"; } # log_ok
 _on()    { echo -e ""; _o "$1"; } # Memanggil baris baru dulu, baru jalankan log_ok
 _ic()     { echo -e "${CYAN}[~] $1${NC}"; } # log_info
-log_create()   { echo -e "${CYAN}[~] $1${NC}"; } # Fungsi untuk menampilkan status pembuatan atau inisialisasi file baru
+# log_create()   { echo -e "${CYAN}[~] $1${NC}"; } # Fungsi untuk menampilkan status pembuatan atau inisialisasi file baru
 _nc()     { echo -e "\n${CYAN}$1${NC}"; } # _color_cyan_end() { ... }
 _in()     { echo -e "\n${CYAN}[~] $1${NC}"; } # _info_color_cyan_end() { ... } log_step berfungsi memberikan jarak visual/ruang sebelum menampilkan status proses baru di terminal
 log_section()  { echo -e "${YELLOW}$1${NC}"; } # Fungsi untuk menampilkan judul section atau label daftar data di dalam menu
@@ -785,7 +783,7 @@ while true; do
                 # Membuat file kosong tiruan agar micro bisa langsung menyimpannya
             touch "$full_new_file_path"
 
-            log_create "\nMembuat dan membuka file baru dengan micro..."
+            _in "Membuat dan membuka file baru dengan micro..."
             sleep 1.5
             micro "$full_new_file_path"
           fi # end if nama_file_murni kosong
@@ -993,22 +991,6 @@ while true; do
 done # end while menu interaktif
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
