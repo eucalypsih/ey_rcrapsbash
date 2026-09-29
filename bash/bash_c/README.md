@@ -2,6 +2,23 @@
 
 
 
+---
+
+`[ "$target_folder_path" == "." ] && echo -e "Folder tujuan terkunci: ${YELLOW}/ (Root)${NC}" || echo -e "Folder tujuan terkunci: ${YELLOW}/${target_folder_path}/${NC}"`
+
+```bash
+if [ "$target_folder_path" == "." ]; then
+  echo -e "Folder tujuan terkunci: ${YELLOW}/ (Root)${NC}"
+else
+  echo -e "Folder tujuan terkunci: ${YELLOW}/${target_folder_path}/${NC}"
+fi
+
+```
+
+---
+
+
+
 - `[ -n "$detected_branch" ]`
 memeriksa apakah variabel $detected_branch tidak kosong (memiliki isi/teks).
 
