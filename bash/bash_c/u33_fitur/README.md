@@ -443,8 +443,8 @@ while true; do
     if [[ "$fisik_num" =~ ^[0-9]+$ ]] && [ "$fisik_num" -ge 1 ] && [ "$fisik_num" -le "${#valid_repos[@]}" ]; then
       idx_fisik=$((fisik_num - 1))
       repo_target="${valid_repos[$idx_fisik]}"
-      owner_name_only="${repo_target%%/}"
-      repo_name_only="${repo_target#/}"
+      owner_name_only="${repo_target%%/*}"
+      repo_name_only="${repo_target#*/}"
       target_folder_fisik="${PWD}/${owner_name_only}/${repo_name_only}"
       target_owner_dir="${PWD}/${owner_name_only}"
       if [ ! -d "$target_folder_fisik" ]; then
