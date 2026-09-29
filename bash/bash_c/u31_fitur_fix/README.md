@@ -557,7 +557,7 @@ if [ -z "$current_sparse" ]; then
     "gpg.format ssh" \
     "user.signingkey ${owner_pubkey}" \
     "commit.gpgsign true" \
-    "gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers"
+    "gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers" \
     "core.sshCommand ssh -i ${owner_privkey} -o IdentitiesOnly=yes";
   do
     git -C "$rp" config $item
