@@ -2,6 +2,15 @@
 
 
 
+aa: 
+### Perubahan Utama (Sesuai Rekomendasi):
+1. Opsi Terpisah `[f]`: Ditambahkan opsi baru di Menu Utama yaitu **`[f] Hanya Hapus Folder Fisik`** agar tidak menggabungkan atau merusak fungsi `[h]` (Hapus Repo dari Daftar `rp.txt`).
+2. Indikator Status Aktif Terpadu: Di bagian daftar repositori, sekarang terdapat indikator status ganda:
+   - `[ daftar aktif ]` jika repo terdaftar di `rp.txt`.
+   - `[ lokal aktif ]` jika folder fisik dan `.git` tersedia di penyimpanan lokal.
+3. Penyaringan Fleksibel: Fitur hapus fisik ini memetakan repositori yang memiliki folder fisik lokal secara dinamis, sehingga Anda tidak perlu khawatir salah menghapus teks konfigurasi di `rp.txt`.
+
+
 ## 1. Perubahan Visual Daftar Repositori (Indikator Ganda)
 Bagian perulangan (`for`) untuk menampilkan daftar repositori diubah agar mendukung status `[ daftar aktif ]` dan `[ lokal aktif ]` secara bersamaan:
 ```bash
