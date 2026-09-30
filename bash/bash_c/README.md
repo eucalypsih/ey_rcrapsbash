@@ -17,6 +17,40 @@ fi
 
 ---
 
+```bash
+# =====================================================================
+# MODUL EKSTERNAL: BUAT FILE BARU DI FOLDER AKTIF (n.sh)
+# =====================================================================
+
+# 1. AMBIL FUNGSI WARNA & LOGGING DARI UTILS (Mundur 1 Folder ke Root)
+PARENT_DIR="$(dirname "$0")/.."
+if [ -f "${PARENT_DIR}/utils.sh" ]; then
+  source "${PARENT_DIR}/utils.sh"
+else
+  echo -e "\033[0;31m[X] FATAL: File utils.sh tidak ditemukan di folder utama (root)!\033[0m"
+  exit 1
+fi
+
+```
+
+```bash
+# =====================================================================
+# MODUL EKSTERNAL: BUAT FILE BARU DI FOLDER AKTIF (n.sh)
+# =====================================================================
+
+# 1. AMBIL FUNGSI WARNA & LOGGING (utils.sh berada di folder yang sama)
+CURRENT_MODUL_DIR="$(dirname "$0")"
+if [ -f "${CURRENT_MODUL_DIR}/utils.sh" ]; then
+  source "${CURRENT_MODUL_DIR}/utils.sh"
+else
+  echo -e "\033[0;31m[X] FATAL: File utils.sh tidak ditemukan di folder modul_sh!\033[0m"
+  exit 1
+fi
+
+```
+
+---
+
 
 
 - `[ -n "$detected_branch" ]`
