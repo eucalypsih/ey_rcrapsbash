@@ -49,6 +49,29 @@ fi
 
 ```
 
+```bash
+# =====================================================================
+# MODUL EKSTERNAL: BUAT FILE BARU DI FOLDER AKTIF (n.sh)
+# =====================================================================
+
+# 1. AMBIL FUNGSI WARNA & LOGGING (utils.sh berada di folder yang sama)
+# Mengunci jalur folder fisik modul_sh secara mutlak agar tidak salah deteksi path
+CURRENT_MODUL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -f "${CURRENT_MODUL_DIR}/utils.sh" ]; then
+  source "${CURRENT_MODUL_DIR}/utils.sh"
+else
+  echo -e "\033[0;31m[X] FATAL: File utils.sh tidak ditemukan di folder ${CURRENT_MODUL_DIR}!\033[0m"
+  exit 1
+fi
+
+# 2. TANGKAP VARIABEL YANG DIKIRIM DARI SKRIP UTAMA
+rp="$1"
+r="$2"
+current_branch="$3"
+
+```
+
 ---
 
 
