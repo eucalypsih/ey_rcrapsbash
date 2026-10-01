@@ -25,7 +25,12 @@ pub fn jalankan_hapus_repo(repo_file: &str, mut valid_repos: Vec<String>) {
         return;
     }
 
-    utils::_cr("----------------------------------------");
+    utils::_cr("----------------------------------------"); // ❌ Error karena _cr tidak ditemukan
+    // utils::_cc("----------------------------------------"); // ✅ BENAR: Menggunakan warna Cyan dari fungsi _cc
+    // pub fn _cr(text: &str) {
+    //     println!("{}", text.red().bold());
+    // }
+    
     utils::_p("Pilih nomor repo yang ingin dibuang dari daftar rp.txt", None);
     
     let mut input_num = String::new();
@@ -245,6 +250,19 @@ fn main() {
 }
 
 ```
+
+## Solusi 2: Tambahkan Fungsi `_cr` ke dalam `src/utils.rs` (Jika Ingin Tetap Merah)
+Jika Anda bersikeras ingin garis pembatas pada menu hapus tersebut tetap menyala berwarna merah tebal sesuai skrip aslinya, Anda tinggal mendaftarkan fungsi `_cr` ke dalam library visual Anda.
+
+Buka berkas `src/utils.rs`, cari bagian atas setelah fungsi `_in` (sekitar baris ke-20), lalu selipkan fungsi publik baru ini di sana:
+```rust
+pub fn _cr(text: &str) {
+    println!("{}", text.red().bold());
+}
+
+```
+
+---
 
 ### Cara Menguji Keamanan Modul Hapus (`h.rs`):
 1. Pilih menu `h` lalu tekan *Enter*.
