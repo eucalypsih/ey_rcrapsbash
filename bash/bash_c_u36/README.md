@@ -369,6 +369,10 @@ Untuk melihat hasilnya, jalankan perintah berikut di terminal proyek Anda:
 cargo run
 
 ```
+```bash
+cargo run --manifest-path $HOME/git_sparse_manager/Cargo.toml
+
+```
 Layar terminal akan langsung bersih dan menampilkan teks berwarna persis seperti standar visual skrip Bash lama Anda, namun diproses menggunakan binary Rust yang super ringan dan hemat baterai.
 
 Jika modul dasar visual ini sudah berhasil berjalan dengan lancar, kita bisa lanjut ke tahap berikutnya. Beritahu saya:
