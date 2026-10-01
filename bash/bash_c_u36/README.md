@@ -216,7 +216,7 @@ Buat file baru bernama `utils.rs` di dalam folder `src/`. Di dalam file ini, kit
 
 Salin kode Rust berikut ke dalam `src/utils.rs`:
 ```rust
-use crossterm::style::{Stylize, Stylized};
+use crossterm::style::Stylize;
 use std::io::{self, Write};
 
 // --- FUNGSI PRINTING STANDAR ---
@@ -300,7 +300,9 @@ pub fn log_critical(text: &str) {
 // --- FUNGSI DENGAN LOGIKA INTERNAL (SUKSES) ---
 pub fn _ls(label: &str, value: Option<&str>) {
     match value {
-        Some(val) => println!("{}", format!("[✓] {label}: ").green() + &val.yellow().to_string()),
+        // Some(val) => println!("{}", format!("[✓] {label}: ").green() + &val.yellow().to_string()), // ❌ Ilegal di Rust
+        // KOREKSI: Gunakan makro format!() agar penggabungan warna aman dan legal di Rust
+        Some(val) => println!("{}", format!("{} {}", format!("[✓] {label}:").green(), val.yellow())),
         None => println!("{}", format!("[✓] Sukses: {label}").green()),
     }
 }
@@ -308,7 +310,9 @@ pub fn _ls(label: &str, value: Option<&str>) {
 // --- FUNGSI PROMPT/INPUT (WAITING USER INPUT) ---
 pub fn _p(prompt_text: &str, example: Option<&str>) {
     match example {
-        Some(ex) => print!("{}", format!("[~] {prompt_text}").yellow() + &ex.green().to_string() + &") ".yellow().to_string()),
+        // Some(ex) => print!("{}", format!("[~] {prompt_text}").yellow() + &ex.green().to_string() + &") ".yellow().to_string()),
+        // KOREKSI MUTAKHIR: Menggabungkan prompt kuning, teks contoh hijau, dan tanda tutup kurung kuning menggunakan format!() // ❌ Ilegal di Rust
+        Some(ex) => print!("{}", format!("{}{}{}", format!("[~] {prompt_text} (").yellow(), ex.green(), ") ".yellow())),
         None => print!("{}", format!("[~] {prompt_text}: ").yellow()),
     }
     let _ = io::stdout().flush(); // Paksa terminal cetak teks tanpa nunggu baris baru (seperti read -p di Bash)
