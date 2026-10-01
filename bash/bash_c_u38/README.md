@@ -161,7 +161,8 @@ Rust akan langsung membaca file `rp.txt`, memisahkan mana owner dan sub-reponya 
 Hebatnya, proses parsing string berbasis *iterator lines* di Rust ini berjalan **puluhan kali lebih cepat** dibandingkan loop internal Bash, serta memakan konsumsi daya baterai yang sangat minim.
 
 Modul visual dan modul database (`rp.txt`) kita sekarang sudah rampung dan saling terhubung dengan solid. Ke bagian mana kita akan melanjutkan konversinya?
-
+- **Struktur Menu Utama (`loop`)** tempat mendeteksi ketikan tombol input (`[t]`, `[h]`, atau pengetikan nomor indeks repo untuk melompat maju)?
+- Ataukah Anda ingin melihat bagaimana Rust **mendeteksi keberadaan folder fisik `.git` lokal** secara otomatis untuk memunculkan status `[ lokal aktif ]`?
 
 
 
