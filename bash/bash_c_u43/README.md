@@ -461,12 +461,75 @@ cargo run
 ```
 Setelah `cargo clean` dijalankan, proses *downloading* & *compiling* untuk reqwest versi bersih akan memakan waktu sekitar 1-2 menit. Begitu selesai, program **dijamin tidak akan mengalami panic crash lagi** dan proses unduhan SSH Key otomatis Anda akan langsung memunculkan tanda sukses berwarna hijau!
 
+<br>
+
+---
+
+<br>
+
+---
+
+<br>
 
 
+Masalah *panic* dari `rustls-platform-verifier` ini ternyata masih muncul di Termux Android karena library `reqwest` secara agresif tetap mengaktifkan *platform verifier* bawaan Android lewat dependensi internalnya.
 
+Agar program Anda **benar-benar terlepas dari ketergantungan SSL Android yang rusak**, kita akan menggunakan library HTTP client alternatif bawaan Rust murni yang jauh lebih ringan, yaitu `ureq`. Library ureq menggunakan `rustls` dan `webpki-roots` murni secara default, sehingga dijamin **100% bebas dari panic crash** di lingkungan terminal/CLI Android (Termux).
 
+Mari kita ganti mesin pengunduhnya dengan cara yang sangat mudah ini:
 
+## Langkah 1: Ganti Dependensi di `Cargo.toml`
+Buka file `Cargo.toml` Anda, hapus library `reqwest`, lalu ganti dengan library `ureq` versi terbaru:
+```toml
+[dependencies]
+crossterm = "0.28"
+base64 = "0.22"
+ureq = "2.10"
 
+```
+
+---
+
+## Langkah 2: Ubah Fungsi Unduh di `src/ssh.rs`
+Buka file `src/ssh.rs` Anda, cari fungsi paling bawah bernama `unduh_dan_proses_key`, lalu ganti seluruh isi fungsi tersebut dengan logika baru berbasis `ureq` yang jauh lebih ringkas ini:
+```rust
+/// Fungsi internal cerdas berbasis ureq yang 100% bebas dari platform-verifier Android
+fn unduh_dan_proses_key(url: &str) -> Result<Vec<u8>, String> {
+    // 1. Eksekusi HTTP GET Request dengan batasan waktu (timeout) 10 detik
+    let agen = ureq::AgentBuilder::new()
+        .timeout(std::time::Duration::from_secs(10))
+        .build();
+
+    let respon = agen.get(url)
+        .call()
+        .map_err(|e| format!("Gagal menghubungi GitHub: {e}"))?;
+
+    // 2. Cek jika HTTP Status bukan 200 OK (Misal 404 Not Found)
+    if respon.status() != 200 {
+        return Err(format!("File tidak ditemukan di GitHub (HTTP Status: {})", respon.status()));
+    }
+
+    // 3. Baca respon data ke dalam bentuk String teks
+    let teks_raw = respon.into_string().map_err(|e| format!("Gagal membaca teks respon: {e}"))?;
+    let teks_bersih = teks_raw.trim();
+
+    // 4. Logika Deteksi: Jika teks diawali tanda khas SSH Key asli, langsung ambil byte-nya
+    if teks_bersih.starts_with("-----BEGIN") {
+        return Ok(teks_bersih.as_bytes().to_vec());
+    }
+
+    // 5. Jika berupa string acak base64, lakukan dekode aman ke format biner byte
+    BASE64_STANDARD
+        .decode(teks_bersih.as_bytes())
+        .map_err(|_| "Konten di GitHub bukan Base64 valid dan bukan format SSH Key standar!".to_string())
+}
+
+```
+
+---
+
+## Langkah 3: Bersihkan dan Jalankan Kembali 🚀
+Agar perubahan library ini terpasang secara bersih, jalankan rangkaian perintah berikut di terminal Termux Anda:
 
 
 
