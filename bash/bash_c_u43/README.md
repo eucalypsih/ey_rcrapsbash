@@ -224,6 +224,19 @@ Logika manajemen identitas kriptografi kita kini sudah beres dan terintegrasi se
 <br>
 
 
+Log error tersebut muncul karena fungsi **unduh_dan_dekode_base64** di dalam `src/ssh.rs` gagal membaca data dari URL GitHub.
+
+Ada dua kemungkinan penyebab utama masalah ini:
+1. URL Sumber Salah/Tidak Ditemukan (HTTP 404): File private key dengan nama `eucalypsih_rsa_privkey` di dalam repositori `eucalypsih_rcrapsbash` milik Anda kemungkinan belum di-upload, salah ketik, atau bersifat privat (tidak bisa diakses via `curl`/`reqwest` tanpa token).
+2. Format Bukan Base64 Murni: Fungsi di Rust mengasumsikan file di GitHub berisi teks *base64 murni tanpa teks lain*. Jika isi file di GitHub ternyata sudah berupa file biner/teks private key asli (diawali `-----BEGIN OPENSSH PRIVATE KEY-----`), maka proses dekode base64 di Rust otomatis akan melempar error gagal dekode.
+
+Berikut adalah perbaikan modul `src/ssh.rs` yang lebih cerdas. Kode ini akan mendeteksi isi file secara otomatis: jika file di GitHub adalah base64, ia akan didekode; namun jika file di GitHub ternyata adalah key asli, ia akan langsung menyimpannya tanpa merusak datanya. Selain itu, kode ini akan menampilkan pesan HTTP error yang spesifik jika file tidak ditemukan.
+
+---
+
+## 🛠️ Perbaikan Sisi `src/ssh.rs`
+Buka file `src/ssh.rs` Anda, lalu timpa seluruh isinya dengan kode yang sudah disempurnakan dan dilengkapi fitur pelacak error (*error-tracking*) di bawah ini:
+
 ```rust
 use std::fs::{self, create_dir_all};
 use std::io::{self, Write};
