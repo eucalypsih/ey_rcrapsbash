@@ -126,7 +126,7 @@ Sekarang buka kembali berkas utama `src/main.rs` Anda. Kita perlu mendaftarkan `
 
 Ubah isi `src/main.rs` Anda menjadi susunan kode berikut:
 ```rust
-use std::io; // {self, Write}; ⚠️ Warning karena tidak terpakai
+use std::io{self, Write};
 mod utils; 
 mod repo;  
 mod t;     
