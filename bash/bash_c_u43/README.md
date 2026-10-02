@@ -198,6 +198,170 @@ Ketika Anda memilih salah satu nomor urut repositori, log notifikasi `_ic` untuk
 
 Logika manajemen identitas kriptografi kita kini sudah beres dan terintegrasi secara modular. Langkah konversi terakhir untuk menyelesaikan seluruh siklus pra-pemrosesan Menu Utama Anda adalah memindahkan fungsi **Proses `git clone` otomatis tanpa checkout** (`git clone -q --filter=blob:none --no-checkout`).
 
+<br>
 
+---
+
+<br>
+
+---
+
+<br>
+
+
+Log error tersebut muncul karena fungsi **unduh_dan_dekode_base64** di dalam `src/ssh.rs` gagal membaca data dari URL GitHub.
+
+Ada dua kemungkinan penyebab utama masalah ini:
+1. URL Sumber Salah/Tidak Ditemukan (HTTP 404): File private key dengan nama `eucalypsih_rsa_privkey` di dalam repositori `eucalypsih_rcrapsbash` milik Anda kemungkinan belum di-upload, salah ketik, atau bersifat privat (tidak bisa diakses via `curl`/`reqwest` tanpa token).
+2. Format Bukan Base64 Murni: Fungsi di Rust mengasumsikan file di GitHub berisi teks *base64 murni tanpa teks lain*. Jika isi file di GitHub ternyata sudah berupa file biner/teks private key asli (diawali `-----BEGIN OPENSSH PRIVATE KEY-----`), maka proses dekode base64 di Rust otomatis akan melempar error gagal dekode.
+
+Berikut adalah perbaikan modul `src/ssh.rs` yang lebih cerdas. Kode ini akan mendeteksi isi file secara otomatis: jika file di GitHub adalah base64, ia akan didekode; namun jika file di GitHub ternyata adalah key asli, ia akan langsung menyimpannya tanpa merusak datanya. Selain itu, kode ini akan menampilkan pesan HTTP error yang spesifik jika file tidak ditemukan.
+
+---
+
+## 🛠️ Perbaikan Sisi `src/ssh.rs`
+Buka file `src/ssh.rs` Anda, lalu timpa seluruh isinya dengan kode yang sudah disempurnakan dan dilengkapi fitur pelacak error (*error-tracking*) di bawah ini:
+
+```rust
+use std::fs::{self, create_dir_all};
+use std::io::{self, Write};
+use std::path::Path;
+use std::process::Command;
+use std::time::Duration;
+use base64::{prelude::BASE64_STANDARD, Engine};
+use crate::utils;
+
+/// Fungsi publik utama untuk melakukan validasi, unduh, dan manajemen konfigurasi SSH Key Owner
+pub fn kelola_ssh_key(owner: &str, rp_path: &str) -> Result<(String, String), ()> {
+    utils::_ic(&format!("Mengonfigurasi SSH Key dinamis untuk owner: {owner}..."));
+
+    let home_dir = std::env::var("HOME").unwrap_or_else(|_| "/data/data/com.termux/files/home".to_string());
+    let ssh_dir = format!("{}/.ssh", home_dir);
+    let owner_privkey = format!("{}/id_rsa_{}", ssh_dir, owner);
+    let owner_pubkey = format!("{}/id_rsa_{}.pub", ssh_dir, owner);
+
+    // 1. CEK KONEKSI INTERNET JIKA KEY BELUM ADA ATAU FOLDER LOKAL BELUM TERSEDIA
+    if !Path::new(&owner_privkey).exists() || !Path::new(rp_path).is_dir() {
+        utils::_ic("Memeriksa jaringan untuk verifikasi kredensial dan repositori...");
+        if !cek_koneksi_internet() {
+            utils::log_fatal("Anda sedang OFFLINE! Proses awal ini memerlukan koneksi internet.");
+            utils::_pp();
+            return Err(());
+        }
+    }
+
+    // 2. UNDUH SSH KEY SECARA OTOMATIS JIKA BELUM ADA DI PENYIMPANAN LOKAL
+    if !Path::new(&owner_privkey).exists() {
+        utils::_ic(&format!("Mengunduh SSH Key untuk {owner} dari remote repository..."));
+
+        if let Err(e) = create_dir_all(&ssh_dir) {
+            utils::_e(&format!("Gagal membuat direktori .ssh: {e}"));
+            return Err(());
+        }
+        
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = fs::set_permissions(&ssh_dir, fs::Permissions::from_mode(0o700));
+        }
+
+        // Unduh PRIVATE KEY
+        let url_priv = format!("https://github.com{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_privkey");
+        match unduh_dan_proses_key(&url_priv) {
+            Ok(bytes_priv) => {
+                if fs::write(&owner_privkey, bytes_priv).is_err() {
+                    utils::log_fatal(&format!("Gagal menulis berkas Private Key untuk {owner}!"));
+                    return Err(());
+                }
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    let _ = fs::set_permissions(&owner_privkey, fs::Permissions::from_mode(0o600));
+                }
+            }
+            Err(pesan_error) => {
+                utils::log_fatal(&format!("Private Key {owner}: {pesan_error}"));
+                return Err(());
+            }
+        }
+
+        // Unduh PUBLIC KEY
+        let url_pub = format!("https://github.com{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_pubkey");
+        match unduh_dan_proses_key(&url_pub) {
+            Ok(bytes_pub) => {
+                if fs::write(&owner_pubkey, bytes_pub).is_err() {
+                    utils::log_fatal(&format!("Gagal menulis berkas Public Key untuk {owner}!"));
+                    return Err(());
+                }
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    let _ = fs::set_permissions(&owner_pubkey, fs::Permissions::from_mode(0o644));
+                }
+            }
+            Err(pesan_error) => {
+                utils::log_fatal(&format!("Public Key {owner}: {pesan_error}"));
+                return Err(());
+            }
+        }
+
+        utils::_o(&format!("Kredensial SSH untuk {owner} berhasil disiapkan."));
+    }
+
+    // 3. VALIDASI AKHIR KETERSEDIAAN BERKAS KEY
+    if Path::new(&owner_privkey).exists() && Path::new(&owner_pubkey).exists() {
+        utils::_o(&format!("SSH Key untuk {owner} berhasil diverifikasi."));
+        Ok((owner_privkey, owner_pubkey))
+    } else {
+        utils::log_fatal("Kredensial SSH tidak lengkap. Skrip dihentikan.");
+        utils::_pp();
+        Err(())
+    }
+}
+
+fn cek_koneksi_internet() -> bool {
+    let output = Command::new("ping")
+        .arg("-c")
+        .arg("1")
+        .arg("-W")
+        .arg("2")
+        .arg("8.8.8.8")
+        .output();
+
+    match output {
+        Ok(out) => out.status.success(),
+        Err(_) => false,
+    }
+}
+
+/// Fungsi cerdas yang otomatis mendeteksi apakah data dari GitHub berupa Base64 atau Key Mentah
+fn unduh_dan_proses_key(url: &str) -> Result<Vec<u8>, String> {
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("Gagal inisialisasi HTTP Client: {e}"))?;
+
+    let respon = client.get(url).send().map_err(|e| format!("Gagal menghubungi GitHub: {e}"))?;
+    
+    // Cek jika HTTP Status bukan 200 OK (Misal 404 Not Found)
+    if !respon.status().is_success() {
+        return Err(format!("File tidak ditemukan di GitHub (HTTP Status: {})", respon.status()));
+    }
+
+    let teks_raw = respon.text().map_err(|e| format!("Gagal membaca teks respon: {e}"))?;
+    let teks_bersih = teks_raw.trim();
+
+    // Logika Deteksi: Jika teks diawali tanda khas SSH Key asli, jangan didekode base64!
+    if teks_bersih.starts_with("-----BEGIN") {
+        return Ok(teks_bersih.as_bytes().to_vec());
+    }
+
+    // Jika berupa string acak, asumsikan itu Base64 lalu lakukan dekode
+    BASE64_STANDARD
+        .decode(teks_bersih.as_bytes())
+        .map_err(|_| "Konten di GitHub bukan Base64 valid dan bukan format SSH Key standar!".to_string())
+}
+
+```
 
 <br>
