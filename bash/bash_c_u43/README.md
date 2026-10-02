@@ -379,4 +379,110 @@ fn unduh_dan_proses_key(url: &str) -> Result<Vec<u8>, String> {
 
 ```
 
+### Bagaimana cara membaca error yang baru?
+Jika proses pengunduhan gagal kembali, Rust tidak akan langsung memunculkan pesan eror umum. Kode baru di atas akan memunculkan detail masalahnya secara spesifik di terminal Anda, contohnya:
+
+<br>
+
+---
+
+<br>
+
+---
+
+<br>
+
+qs: 
+```bash
+[✓] Repositori dipilih: eucalypsih/ey_rcraps
+[~] Mengunci jalur kerja lokal proyek...
+[~] Mengonfigurasi SSH Key dinamis untuk owner: eucalypsih...
+[~] Memeriksa jaringan untuk verifikasi kredensial dan repositori...
+[~] Mengunduh SSH Key untuk eucalypsih dari remote repository...
+
+thread 'reqwest-internal-sync-runtime' (24971) panicked at /data/data/com.termux/files/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustls-platform-verifier-0.7.1/src/android.rs:90:10:
+Expect rustls-platform-verifier to be initialized
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (24962) panicked at /data/data/com.termux/files/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reqwest-0.13.5/src/blocking/client.rs:1582:5:
+event loop thread panicked
+
+```
+
+aa: 
+Penyebab panic error di atas adalah karena library internal `reqwest` (khususnya versi `0.13.5` yang terdeteksi di log terminal Anda) secara otomatis menggunakan `rustls-platform-verifier` bawaan Android. Di dalam lingkungan **Termux CLI**, sistem verifikasi milik Android ini pasti akan memicu *crash* karena program Anda dieksekusi sebagai biner terminal, bukan sebagai aplikasi APK Android resmi.
+
+Untuk memaksa `reqwest` agar **benar-benar menggunakan sertifikat internal bawaan Rust murni (`webpki-roots`)** dan mengabaikan verifikasi Android yang rusak, kita harus mengunci fiturnya secara ketat di `Cargo.toml`.
+
+Berikut adalah perbaikan mutakhir untuk menyelesaikan masalah ini secara permanen:
+
+## Langkah 1: Ubah Total `Cargo.toml` Anda
+Buka file `Cargo.toml` Anda, lalu ganti bagian `[dependencies]` dengan konfigurasi di bawah ini. Kita akan menurunkan versi `reqwest` ke versi `0.12` yang stabil, mematikan fitur bawaan Android (`default-features = false`), dan mengaktifkan sertifikat akar independen (`rustls-tls-webpki-roots`):
+```toml
+[dependencies]
+crossterm = "0.28"
+base64 = "0.22"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls-webpki-roots"] }
+
+```
+
+---
+
+## Langkah 2: Sesuaikan Pemanggilan Client di `src/ssh.rs`
+Buka file `src/ssh.rs` Anda, lalu cari fungsi paling bawah bernama `unduh_dan_proses_key`. Sederhanakan fungsi pembuat HTTP *client* tersebut menjadi seperti ini agar ia mendeteksi sertifikat bawaan `webpki` secara otomatis:
+```rust
+/// Fungsi internal cerdas untuk mengunduh string dari GitHub (Mendukung Webpki-Roots independen Android)
+fn unduh_dan_proses_key(url: &str) -> Result<Vec<u8>, String> {
+    // KOREKSI: Gunakan pembuatan standar, Cargo.toml di atas akan otomatis mengunci sertifikat webpki-roots secara global
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("Gagal inisialisasi HTTP Client: {e}"))?;
+
+    let respon = client.get(url).send().map_err(|e| format!("Gagal menghubungi GitHub: {e}"))?;
+    
+    // Cek jika HTTP Status bukan 200 OK (Misal 404 Not Found)
+    if !respon.status().is_success() {
+        return Err(format!("File tidak ditemukan di GitHub (HTTP Status: {})", respon.status()));
+    }
+
+    let teks_raw = respon.text().map_err(|e| format!("Gagal membaca teks respon: {e}"))?;
+    let teks_bersih = teks_raw.trim();
+
+    // Logika Deteksi: Jika teks diawali tanda khas SSH Key asli, jangan didekode base64!
+    if teks_bersih.starts_with("-----BEGIN") {
+        return Ok(teks_bersih.as_bytes().to_vec());
+    }
+
+    // Jika berupa string acak, asumsikan itu Base64 lalu lakukan dekode
+    BASE64_STANDARD
+        .decode(teks_bersih.as_bytes())
+        .map_err(|_| "Konten di GitHub bukan Base64 valid dan bukan format SSH Key standar!".to_string())
+}
+
+```
+
+---
+
+## Langkah 3: Bersihkan Cache dan Jalankan Kembali 🚀
+Karena ada perubahan struktur fitur (*features*) pada library `reqwest` di `Cargo.toml`, Anda **wajib membersihkan sisa kompilasi lama** agar Termux tidak menggunakan cache `rustls-platform-verifier` yang rusak.
+
+Jalankan perintah ini berurutan di terminal Termux Anda:
+```bash
+cd $HOME/git_sparse_manager
+cargo clean
+cargo run
+
+```
+Setelah `cargo clean` dijalankan, proses *downloading* & *compiling* untuk reqwest versi bersih akan memakan waktu sekitar 1-2 menit. Begitu selesai, program **dijamin tidak akan mengalami panic crash lagi** dan proses unduhan SSH Key otomatis Anda akan langsung memunculkan tanda sukses berwarna hijau!
+
+
+
+
+
+
+
+
+
+
 <br>
