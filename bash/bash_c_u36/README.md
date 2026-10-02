@@ -253,6 +253,8 @@ pub fn _c(text: &str) {
     println!("{}", format!("[+] {text}").yellow());
 }
 
+// Tambahkan baris ini tepat di atas fungsi log_notify
+#[allow(dead_code)]
 pub fn log_notify(text: &str) {
     println!("\n{}", format!("[+] {text}").yellow());
 }
@@ -281,6 +283,8 @@ pub fn log_fatal(text: &str) {
     println!("{}", format!("[X] FATAL ERROR: {text}").red().bold());
 }
 
+// Tambahkan baris ini tepat di atas fungsi log_notify
+#[allow(dead_code)]
 pub fn log_detail(text: &str) {
     println!("{}", format!("     -> {text}").yellow());
 }
