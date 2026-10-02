@@ -373,11 +373,70 @@ cargo run
 cargo run --manifest-path $HOME/git_sparse_manager/Cargo.toml
 
 ```
+
 Layar terminal akan langsung bersih dan menampilkan teks berwarna persis seperti standar visual skrip Bash lama Anda, namun diproses menggunakan binary Rust yang super ringan dan hemat baterai.
 
 Jika modul dasar visual ini sudah berhasil berjalan dengan lancar, kita bisa lanjut ke tahap berikutnya. Beritahu saya:
 - Apakah Anda ingin melanjutkan konversi ke bagian **Modul Pembuatan File Otomatis `rp.txt`**?
 - Atau ingin ke bagian **Logika Perulangan `loop` Menu Utama** terlebih dahulu?
+
+---
+
+aa: 
+Agar Anda bisa melihat pesan warning dan error dengan jelas tanpa terhapus oleh perintah pembersihan layar (`clear` atau `\x1B[2J\x1B[1;1H`), Anda perlu memahami **kenapa hal itu terjadi**.
+
+## 🔍 Penyebab Utama
+Di dalam file `src/main.rs` Anda, baris pertama di dalam fungsi `loop` adalah perintah pembersih layar:
+```rust
+print!("\x1B[2J\x1B[1;1H");
+
+```
+Ketika Cargo berhasil melakukan kompilasi dan langsung menjalankan program (`cargo run`), Rust mengeksekusi baris tersebut dalam hitungan milidetik. Akibatnya, semua teks *warning* kompilasi yang baru saja dicetak oleh Cargo **langsung tersapu bersih** oleh menu utama Anda.
+
+Berikut adalah **3 cara paling direkomendasikan** agar Anda bisa melihat pesan *warning* dan *error* tersebut secara leluasa:
+
+---
+
+## Cara 1: Menggunakan Perintah `cargo check` atau `cargo build` (Rekomendasi Utama)
+Jangan gunakan `cargo run` jika Anda hanya ingin memeriksa kesehatan kode Anda. Gunakan perintah yang **hanya melakukan kompilasi tanpa menjalankan programnya**, sehingga layar terminal tidak akan pernah terhapus:
+```bash
+# Opsi A: Memeriksa error & warning dengan sangat cepat tanpa membuat file binary
+cargo check --manifest-path $HOME/git_sparse_manager/Cargo.toml
+
+# Opsi B: Mengompilasi kode menjadi file biner (menampilkan warning & error secara utuh)
+cargo build --manifest-path $HOME/git_sparse_manager/Cargo.toml
+
+```
+> Teks warning dan error akan tetap menetap di layar terminal Termux Anda sampai Anda membersihkannya sendiri secara manual.
+
+---
+
+## Cara 2: Alihkan Output ke File Teks (Log File)
+Jika teks *warning* Anda terlalu panjang hingga terpotong oleh batas atas layar Termux, Anda bisa membelokkan seluruh laporan kompilasi Cargo ke dalam sebuah file teks baru (misalnya `log.txt`) menggunakan operator `2>`.
+
+Jalankan perintah ini di Termux:
+```bash
+cargo build --manifest-path $HOME/git_sparse_manager/Cargo.toml 2> log.txt
+
+```
+Perintah di atas tidak akan menampilkan apa pun di layar terminal. Untuk membaca semua daftar *warning* dan *error* yang terjadi, Anda tinggal membuka file tersebut dengan editor andalan Anda:
+```bash
+micro log.txt
+
+```
+
+## Cara 3: Berikan Komentar (`//`) pada Pembersih Layar Saat Debugging
+Jika Anda tetap ingin menggunakan `cargo run`, Anda bisa mematikan sementara fitur penghapus layar di dalam kode Rust Anda selama masa pengembangan (*development/debugging*).
+1. Buka file `src/main.rs`.
+2. Cari baris di dalam `loop` yang bertugas menghapus layar (biasanya sekitar baris 12-13).
+3. Tambahkan tanda dua garis miring (`//`) di depannya untuk menonaktifkan perintah tersebut
+```bash
+// print!("\x1B[2J\x1B[1;1H"); // <-- Matikan sementara dengan komentar
+// let _ = io::stdout().flush();
+
+```
+4. Simpan, lalu jalankan kembali `cargo run`. Sekarang, teks menu akan dicetak di bawah teks *warning* Cargo tanpa menghapusnya. Jika aplikasi Anda sudah selesai dibuat dan siap dipakai, Anda tinggal menghapus kembali tanda `//` tersebut.
+Silakan dicoba menggunakan **Cara 1 (`cargo check` atau `cargo build`)** karena itu merupakan standar industri yang paling sering digunakan oleh para programmer Rust.
 
 
 
