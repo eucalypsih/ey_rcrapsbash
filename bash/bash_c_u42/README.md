@@ -10,7 +10,7 @@ Di dalam skrip Bash lama Anda, opsi ini bertugas untuk melakukan *purge* atau pe
 ## Langkah 1: Buat Modul Purge Folder Fisik (`src/f.rs`)
 Buat berkas baru bernama `f.rs` di dalam folder `src/`. Salin seluruh kode bersih di bawah ini ke dalam berkas tersebut:
 ```rust
-use std::io::{self, Write};
+use std::io; // {self, Write}; ⚠️ Warning karena tidak terpakai
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -24,7 +24,7 @@ pub fn jalankan_purge_folder(valid_repos: Vec<String>) {
         return;
     }
 
-    utils::_cc("----------------------------------------");
+    utils::_cr("----------------------------------------");
     utils::_p("Pilih nomor repo yang ingin di-PURGE/HAPUS folder fisik lokalnya saja", None);
     
     let mut input_num = String::new();
@@ -66,11 +66,13 @@ pub fn jalankan_purge_folder(valid_repos: Vec<String>) {
                     .arg("--porcelain")
                     .output();
 
-                let mut ada_perubahan = false;
+                // let mut ada_perubahan = false;
+                let mut _ada_perubahan = false; // (Tambahkan tanda garis bawah di depannya)
                 if let Ok(out) = output_git {
                     let status_text = String::from_utf8_lossy(&out.stdout);
                     if !status_text.trim().is_empty() {
-                        ada_perubahan = true;
+                        // ada_perubahan = true;
+                        _ada_perubahan = true; // (Tambahkan tanda garis bawah di depannya
                         utils::log_critical(&format!("Terdeteksi berkas UNTRACKED / MODIFIED di dalam /{repo_name}!"));
                         println!("\x1B[31m{}\x1B[0m", status_text); // Cetak berkas modifikasi warna merah
                         utils::_cc("------------------------------------------------------");
@@ -124,7 +126,7 @@ Sekarang buka kembali berkas utama `src/main.rs` Anda. Kita perlu mendaftarkan `
 
 Ubah isi `src/main.rs` Anda menjadi susunan kode berikut:
 ```rust
-use std::io::{self, Write};
+use std::io{self, Write};
 mod utils; 
 mod repo;  
 mod t;     
