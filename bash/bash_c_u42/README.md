@@ -10,7 +10,7 @@ Di dalam skrip Bash lama Anda, opsi ini bertugas untuk melakukan *purge* atau pe
 ## Langkah 1: Buat Modul Purge Folder Fisik (`src/f.rs`)
 Buat berkas baru bernama `f.rs` di dalam folder `src/`. Salin seluruh kode bersih di bawah ini ke dalam berkas tersebut:
 ```rust
-use std::io; // (Hapus {self, Write}
+use std::io; // {self, Write}; ⚠️ Warning karena tidak terpakai
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -126,7 +126,7 @@ Sekarang buka kembali berkas utama `src/main.rs` Anda. Kita perlu mendaftarkan `
 
 Ubah isi `src/main.rs` Anda menjadi susunan kode berikut:
 ```rust
-use std::io::{self, Write};
+use std::io; // {self, Write}; ⚠️ Warning karena tidak terpakai
 mod utils; 
 mod repo;  
 mod t;     

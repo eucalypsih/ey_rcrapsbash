@@ -14,7 +14,7 @@ Kode di bawah ini telah disesuaikan agar **notifikasi visual `_ic` tidak akan pe
 Buka berkas `src/ssh.rs` Anda, lalu timpa seluruh isinya dengan kode yang telah dibersihkan dari log duplikat ini:
 ```rust
 use std::fs::{self, create_dir_all};
-use std::io;  // (Hapus {self, Write})
+// use std::io::{self, Write}; ⚠️ Warning karena tidak terpakai
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
