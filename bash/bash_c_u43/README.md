@@ -14,7 +14,7 @@ Kode di bawah ini telah disesuaikan agar **notifikasi visual `_ic` tidak akan pe
 Buka berkas `src/ssh.rs` Anda, lalu timpa seluruh isinya dengan kode yang telah dibersihkan dari log duplikat ini:
 ```rust
 use std::fs::{self, create_dir_all};
-use std::io::{self, Write};
+// use std::io::{self, Write}; ⚠️ Warning karena tidak terpakai
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
@@ -58,7 +58,7 @@ pub fn kelola_ssh_key(owner: &str, rp_path: &str) -> Result<(String, String), ()
         }
 
         // Unduh dan Dekode PRIVATE KEY (Aman di memori tanpa subshell)
-        let url_priv = format!("https://github.com{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_privkey");
+        let url_priv = format!("https://github.com/{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_privkey");
         if let Ok(bytes_priv) = unduh_dan_dekode_base64(&url_priv) {
             if fs::write(&owner_privkey, bytes_priv).is_err() {
                 utils::log_fatal(&format!("Gagal menulis berkas Private Key untuk {owner}!"));
@@ -77,7 +77,7 @@ pub fn kelola_ssh_key(owner: &str, rp_path: &str) -> Result<(String, String), ()
         }
 
         // Unduh dan Dekode PUBLIC KEY
-        let url_pub = format!("https://github.com{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_pubkey");
+        let url_pub = format!("https://github.com/{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_pubkey");
         if let Ok(bytes_pub) = unduh_dan_dekode_base64(&url_pub) {
             if fs::write(&owner_pubkey, bytes_pub).is_err() {
                 utils::log_fatal(&format!("Gagal menulis berkas Public Key untuk {owner}!"));
@@ -193,10 +193,27 @@ Struktur pemanggilan yang bersih pada `src/main.rs` harus terlihat seperti ini:
 
 ```
 
+- `Cargo.toml`
+```toml
+[package]
+name = "git_sparse_manager"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+crossterm = "0.29.0"
+reqwest = { version = "0.12.28", default-features = false, features = ["blocking"] }
+base64 = "0.23.1"
+
+```
+
+
 ### Hasil Pembersihan:
 Ketika Anda memilih salah satu nomor urut repositori, log notifikasi `_ic` untuk konfigurasi SSH sekarang **dijamin muncul tepat 1 kali** secara bersih, presisi, dan tidak akan tumpang-tindih lagi!
 
 Logika manajemen identitas kriptografi kita kini sudah beres dan terintegrasi secara modular. Langkah konversi terakhir untuk menyelesaikan seluruh siklus pra-pemrosesan Menu Utama Anda adalah memindahkan fungsi **Proses `git clone` otomatis tanpa checkout** (`git clone -q --filter=blob:none --no-checkout`).
+
+- Modul proses **`git clone` otomatis tanpa checkout** (`git clone -q --filter=blob:none --no-checkout`)?
 
 <br>
 
@@ -224,7 +241,7 @@ Buka file `src/ssh.rs` Anda, lalu timpa seluruh isinya dengan kode yang sudah di
 
 ```rust
 use std::fs::{self, create_dir_all};
-use std::io::{self, Write};
+// use std::io::{self, Write}; ⚠️ Warning karena tidak terpakai
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
@@ -266,7 +283,7 @@ pub fn kelola_ssh_key(owner: &str, rp_path: &str) -> Result<(String, String), ()
         }
 
         // Unduh PRIVATE KEY
-        let url_priv = format!("https://github.com{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_privkey");
+        let url_priv = format!("https://github.com/{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_privkey");
         match unduh_dan_proses_key(&url_priv) {
             Ok(bytes_priv) => {
                 if fs::write(&owner_privkey, bytes_priv).is_err() {
@@ -286,7 +303,7 @@ pub fn kelola_ssh_key(owner: &str, rp_path: &str) -> Result<(String, String), ()
         }
 
         // Unduh PUBLIC KEY
-        let url_pub = format!("https://github.com{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_pubkey");
+        let url_pub = format!("https://github.com/{owner}/eucalypsih_rcrapsbash/raw/main/{owner}_rsa_pubkey");
         match unduh_dan_proses_key(&url_pub) {
             Ok(bytes_pub) => {
                 if fs::write(&owner_pubkey, bytes_pub).is_err() {
