@@ -14,7 +14,7 @@ Kode di bawah ini telah disesuaikan agar **notifikasi visual `_ic` tidak akan pe
 Buka berkas `src/ssh.rs` Anda, lalu timpa seluruh isinya dengan kode yang telah dibersihkan dari log duplikat ini:
 ```rust
 use std::fs::{self, create_dir_all};
-use std::io::{self, Write};
+use std::io;  // (Hapus {self, Write})
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
@@ -192,6 +192,21 @@ Struktur pemanggilan yang bersih pada `src/main.rs` harus terlihat seperti ini:
             }
 
 ```
+
+- `Cargo.toml`
+```toml
+[package]
+name = "git_sparse_manager"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+crossterm = "0.29.0"
+reqwest = { version = "0.13.5", features = ["blocking"] }
+base64 = "0.23.1"
+
+```
+
 
 ### Hasil Pembersihan:
 Ketika Anda memilih salah satu nomor urut repositori, log notifikasi `_ic` untuk konfigurasi SSH sekarang **dijamin muncul tepat 1 kali** secara bersih, presisi, dan tidak akan tumpang-tindih lagi!
