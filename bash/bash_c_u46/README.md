@@ -319,6 +319,120 @@ Langkah berikutnya adalah merakit **Fungsi Menu Kedua (Buka Menu Sparse-Checkout
 
 Apakah Anda ingin kita langsung rancang kerangka fungsi menu kedua tersebut di tahap selanjutnya? Jika siap, silakan beri tahu saya! Or if there are any error/warning notes, please let me know.
 
+<br>
+
+---
+
+<br>
+
+---
+
+<br>
+
+qo: 
+```bash
+   Compiling git_sparse_manager v0.1.0 (/data/data/com.termux/files/home/git_sparse_manager)
+error[E0716]: temporary value dropped while borrowed
+  --> src/init_git.rs:52:29
+   |
+52 |             ("user.email", &format!("{}@://github.com", owner)),
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ creates a temporary value which is freed while still in use
+...
+55 |         ];
+   |          - temporary value is freed at the end of this statement
+56 |
+57 |         for (key, value) in config_commands {
+   |                             --------------- borrow later used here
+   |
+   = note: consider using a `let` binding to create a longer lived value
+
+For more information about this error, try `rustc --explain E0716`.
+error: could not compile `git_sparse_manager` (bin "git_sparse_manager") due to 1 previous error
+
+```
+
+<br>
+
+---
+
+<br>
+
+aa: 
+Error E0716: temporary value dropped while borrowed ini terjadi karena karakteristik manajemen memori Rust yang sangat ketat mengenai **Lifetime (masa hidup variabel)**.
+
+## 🔍 Analisis Penyebab Masalah
+Di dalam file `src/init_git.rs`, Anda membuat array dinamis `vec![ ... ]` yang berisi referensi teks (`&format!(...)`).
+Perintah `format!()` menciptakan sebuah objek String baru di dalam memori yang bersifat sementara (*temporary value*). Karena objek tersebut tidak disimpan terlebih dahulu ke dalam variabel tetap menggunakan `let`, Rust akan **langsung memusnahkan (_drop_)** data teks tersebut tepat di baris akhir tanda penutupan kurung siku `];`.
+
+Akipalnya, saat perulangan `for` di bawahnya mencoba membaca data tersebut, referensi memori tersebut sudah kosong (menjadi *dangling pointer*), dan Rust mendeteksi ini sebagai celah keamanan memori yang ilegal.
+
+---
+
+## 🛠️ Solusi Perbaikan Mutakhir
+Cara paling aman dan bersih di Rust untuk memasukkan teks dinamis ke dalam sebuah struktur perulangan `vec` tanpa terikat masalah *lifetime* adalah **menyimpan hasil format teks tersebut ke dalam variabel `let` tersendiri di luar lingkup array**, sehingga memori teks tersebut dijamin tetap hidup sepanjang fungsi berjalan.
+
+Silakan buka kembali berkas `src/init_git.rs` Anda. Cari blok pendaftaran `config_commands` (sekitar baris 48-55), lalu ganti seluruh blok tersebut dengan kode yang sudah diperbaiki di bawah ini:
+```rust
+        utils::_ic("Mengonfigurasi identitas dan pengaman SSH lokal proyek... ");
+
+        // KOREKSI UTAMA: Simpan hasil format string ke dalam let binding agar memiliki masa hidup yang panjang (Longer Lived Value)
+        let email_value = format!("{}@users.noreply.github.com", owner);
+        let ssh_command_value = format!("ssh -i {} -o IdentitiesOnly=yes", owner_privkey);
+
+        // Array sekarang menyimpan referensi ke variabel tetap di atas, dijamin aman dan legal oleh compiler Rust
+        let config_commands = vec![
+            ("user.name", owner),
+            ("user.email", &email_value),
+            ("core.sshCommand", &ssh_command_value),
+            ("commit.gpgsign", "false"),
+        ];
+
+        for (key, value) in config_commands {
+            let config_status = Command::new("git")
+                .arg("-C")
+                .arg(rp_path)
+                .arg("config")
+                .arg("local")
+                .arg(key)
+                .arg(value)
+                .status();
+
+            if config_status.is_err() || !config_status.unwrap().success() {
+                utils::_e(&format!("Gagal mengunci konfigurasi lokal: {}", key));
+                return Err(());
+            }
+        }
+
+```
+
+Jika proses eksekusi menu depan dan inisialisasi awal Git ini sudah berjalan sempurna di layar Termux Anda, mari kita melangkah ke fungsionalitas besar berikutnya.
+
+<br>
+
+---
+
+<br>
+
+qa: 
+Apakah kita bisa langsung merancang **Fungsi Menu Kedua (Sistem Seleksi Sparse-Checkout / Menu Interaktif Pilihan Folder)** yang berisi opsi `[e]` Edit, `[n]` Buat Baru, `[d]` Hapus, dan tombol `[b]` Back yang bebas dari luapan *stack call*? Jika Anda siap, silakan beri tahu saya!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
