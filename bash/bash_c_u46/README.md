@@ -79,7 +79,7 @@ pub fn jalankan_init_git(
                 .arg("-C")
                 .arg(rp_path)
                 .arg("config")
-                .arg("local")
+                .arg("--local") // ✅ BENAR: Menggunakan double dash sesuai parameter asli Git
                 .arg(key)
                 .arg(value)
                 .status();
@@ -392,7 +392,7 @@ Silakan buka kembali berkas `src/init_git.rs` Anda. Cari blok pendaftaran `confi
                 .arg("-C")
                 .arg(rp_path)
                 .arg("config")
-                .arg("local")
+                .arg("--local") // ✅ BENAR: Menggunakan double dash sesuai parameter asli Git
                 .arg(key)
                 .arg(value)
                 .status();
