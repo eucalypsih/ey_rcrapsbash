@@ -80,6 +80,12 @@ pub fn buka_menu_sparse(rp_path: &str, repo_name: &str, current_branch: &str) ->
                 let mut sudah_aktif = false;
                 for active_line in current_sparse.lines() {
                     let cleaned_active = active_line.trim().trim_start_matches('/').trim_end_matches('/');
+                    
+                    // KOREKSI JELI: Lewati dan abaikan pola teks manual agar tidak merusak pencocokan folder
+                    if cleaned_active == "*" || cleaned_active == "!*" || cleaned_active == "README.md" || cleaned_active.contains('*') {
+                        continue;
+                    }
+                    
                     if cleaned_active == folder {
                         sudah_aktif = true;
                         break;
