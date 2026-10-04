@@ -69,6 +69,14 @@ pub fn jalankan_toggle_folder(
 
     match status_git {
         Ok(status) if status.success() => {
+            // 💡 KOREKSI UTAMA: Paksa Git untuk langsung menerapkan aturan secara fisik ke penyimpanan lokal (Reapply)
+            let _reapply_status = Command::new("git")
+                .arg("-C")
+                .arg(rp_path)
+                .arg("sparse-checkout")
+                .arg("reapply") // <-- Perintah ini yang memicu file langsung muncul di lokal fisik Anda
+                .status();
+
             if sudah_aktif {
                 utils::_o(&format!("Folder /{} berhasil dinonaktifkan dari lokal.", folder_target));
             } else {
