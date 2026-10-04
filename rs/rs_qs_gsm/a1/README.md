@@ -96,21 +96,21 @@ Salin kode idiomatik Rust di bawah ini ke dalam berkas tersebut:
 use std::fs;
 use std::path::Path;
 use std::io::{self, Write};
-// Mengimpor macro log standar industri Rust
 use log::{debug, info, error, warn};
 
 /// Fungsi memeriksa kesiapan komponen sistem menggunakan standar logging idiomatik Rust
 pub fn audit_komponen_sistem() -> Result<(), ()> {
-    // 1. LOG LEVEL: DEBUG (Hanya muncul jika mode verbose/debug diaktifkan dari luar)
+    // Ambil jalur absolut folder proyek secara dinamis dari manifest biner Cargo
+    let folder_proyek = env!("CARGO_MANIFEST_DIR");
+    let jalur_absolut_utils = format!("{}/src/utils.rs", folder_proyek);
+    let path = Path::new(&jalur_absolut_utils);
+
     debug!("Menjalankan fungsi peninjauan integritas struktur proyek...");
-    info!("Memindai komponen sistem: memeriksa berkas './src/utils.rs'...");
+    info!("Memindai komponen sistem: memeriksa berkas '{}'...", jalur_absolut_utils);
 
-    let target_file = "./src/utils.rs";
-    let path = Path::new(target_file);
-
-    // 2. Memeriksa keberadaan file fisik menggunakan Path API secara efisien
+    // Memeriksa keberadaan file fisik menggunakan jalur absolut hasil kompilasi
     if path.is_file() {
-        debug!("-> [Stat] Berkas '{}' ditemukan secara fisik.", target_file);
+        debug!("-> [Stat] Berkas ditemukan secara fisik di jalur absolut.");
 
         // Memeriksa hak akses metadata berkas secara idiomatik
         if let Ok(metadata) = fs::metadata(path) {
@@ -128,31 +128,27 @@ pub fn audit_komponen_sistem() -> Result<(), ()> {
         info!("[✓] Berkas terverifikasi dengan aman.");
         tahan_layar_interaktif();
 
-        // 3. VALIDASI PENGUNCIAN MODUL (Idiomatik Rust: Menggunakan refleksi/pengecekan modul internal)
-        // Di Rust, kita tidak perlu memindai string teks mentah file kode.
-        // Kita cukup memberikan penegasan (assertion) bahwa sistem biner sukses terkompilasi.
         debug!("Melakukan verifikasi kompilasi modul pendukung internal...");
         debug!("  [Fungsi Alias] Token '_e()'   -> [Terikat di Kompilasi biner]");
         debug!("  [Fungsi Alias] Token '_ic()'  -> [Terikat di Kompilasi biner]");
         debug!("  [Fungsi Alias] Token '_o()'   -> [Terikat di Kompilasi biner]");
         debug!("  [Fungsi Alias] Token '_cc()'  -> [Terikat di Kompilasi biner]");
-        debug!("  [Fungsi Alias] Token '_p()'   -> [Terikat di Kompilasi biner Middlware]");
+        debug!("  [Fungsi Alias] Token '_p()'   -> [Terikat di Kompilasi biner Middleware]");
         debug!("  [Fungsi Alias] Token '_pp()'  -> [Terikat di Kompilasi biner Middleware]");
 
-        info!("[✓] Sukses! Seluruh fungsi di './src/utils.rs' terikat sempurna.");
+        info!("[✓] Sukses! Seluruh fungsi di '{}' terikat sempurna.", jalur_absolut_utils);
         tahan_layar_interaktif();
         Ok(())
     } else {
-        // 4. LOG LEVEL: ERROR (Kritis, akan selalu muncul di terminal)
-        error!("FATAL ERROR: Berkas './src/utils.rs' tidak ditemukan secara fisik!");
-        error!("Struktur proyek korup. Skrip dihentikan secara paksa.");
+        // KOREKSI AMAN: Pastikan log error mencetak jalur absolut yang sebenarnya dicari agar informatif
+        error!("FATAL ERROR: Berkas tidak ditemukan secara fisik di jalur: '{}'", jalur_absolut_utils);
+        error!("Struktur proyek korup atau tidak sejajar. Skrip dihentikan secara paksa.");
         std::process::exit(1);
     }
 }
 
 /// Fungsi pembantu internal ekivalen dengan "read -r" di Bash untuk menahan layar pembacaan debug
 fn tahan_layar_interaktif() {
-    // Hanya lakukan jeda interaktif jika logger eksternal diatur dalam mode debug (verbose aktif)
     if log::log_enabled!(log::Level::Debug) {
         print!("\x1B[0;90m(Tekan [Enter] untuk melanjutkan peninjauan debug...)\x1B[0m");
         let _ = io::stdout().flush();
@@ -170,19 +166,7 @@ Buka berkas utama `src/main.rs` Anda. Kita perlu mendaftarkan modul baru ini dan
 
 Sesuaikan bagian atas `src/main.rs` Anda menjadi susunan berikut:
 ```rust
-use std::io::{self, Write};
-use std::process::Command;
-
-mod utils; 
-mod repo;  
-mod t;     
-mod h;     
-mod f;     
-mod ssh;   
-mod clone; 
-mod branch; 
-mod init_git;
-mod e; 
+mod utils;
 mod verbose_init; // 1. Daftarkan modul verbose idiomatik
 
 fn main() {
