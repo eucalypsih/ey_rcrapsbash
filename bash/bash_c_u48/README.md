@@ -260,6 +260,43 @@ Bagian tindakan manipulasi file manakah yang ingin kita selesaikan berikutnya ke
 - Modul `[eE]` (Edit Berkas Menggunakan Editor Internal / `e.rs`)?
 - Modul `[dD]` (Hapus File/Sub-Folder via Git RM / `d.rs`)?
 
+<br>
+
+---
+
+---
+
+<br>
+
+```rust
+
+    let mut git_cmd = Command::new("git");
+    git_cmd.arg("-C").arg(rp_path).arg("sparse-checkout").arg("set");
+
+    // Suntikkan aturan penutup dan pembuka untuk file root utama (Pengganti new_sparse_list+=)
+    // Tanda penulisan di Rust harus diawali garis miring "/" agar Git membaca dari root directory
+    git_cmd.arg("/*");
+    git_cmd.arg("!/*/");
+    git_cmd.arg("/README.md");
+
+    // Masukkan folder-folder terpilih ke dalam rangkaian parameter Git
+    for folder in &folder_aktif {
+        // Format menjadi "/nama_folder/" agar Git tahu ini adalah target direktori murni
+        let pola_folder = format!("/{}/", folder);
+        git_cmd.arg(&pola_folder);
+    }
+
+    let status_git = git_cmd.status();
+
+    match status_git {
+
+```
+
+
+
+
+
+
 
 
 
