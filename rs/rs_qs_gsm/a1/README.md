@@ -77,10 +77,13 @@ Mari kita bangun sistem logging standar industri ini ke dalam proyek Anda.
 ## Langkah 1: Tambahkan Library Standar Log di `Cargo.toml`
 Buka berkas `Cargo.toml` Anda, lalu tambahkan dua *crate* standar industri untuk penanganan log di bagian `[dependencies]`:
 ```toml
+[package]
+name = "gsm"
+version = "0.1.0"
+edition = "2024"
+
 [dependencies]
 crossterm = "0.28"
-base64 = "0.22"
-ureq = "2.10"
 log = "0.4"          # Facade logging standar Rust
 env_logger = "0.11"   # Logger terminal berbasis environment variable
 
@@ -96,10 +99,15 @@ Salin kode idiomatik Rust di bawah ini ke dalam berkas tersebut:
 use std::fs;
 use std::path::Path;
 use std::io::{self, Write};
+// Mengimpor macro log standar industri Rust
 use log::{debug, info, error, warn};
 
 /// Fungsi memeriksa kesiapan komponen sistem menggunakan standar logging idiomatik Rust
 pub fn audit_komponen_sistem() -> Result<(), ()> {
+    // 1. LOG LEVEL: DEBUG (Hanya muncul jika mode verbose/debug diaktifkan dari luar)
+    debug!("Menjalankan fungsi peninjauan integritas struktur proyek...");
+    info!("Memindai komponen sistem: memeriksa berkas '$HOME/gsm/src/utils.rs'...");
+
     // Ambil jalur absolut folder proyek secara dinamis dari manifest biner Cargo
     let folder_proyek = env!("CARGO_MANIFEST_DIR");
     let jalur_absolut_utils = format!("{}/src/utils.rs", folder_proyek);
@@ -128,6 +136,9 @@ pub fn audit_komponen_sistem() -> Result<(), ()> {
         info!("[✓] Berkas terverifikasi dengan aman.");
         tahan_layar_interaktif();
 
+        // 3. VALIDASI PENGUNCIAN MODUL (Idiomatik Rust: Menggunakan refleksi/pengecekan modul internal)
+        // Di Rust, kita tidak perlu memindai string teks mentah file kode.
+        // Kita cukup memberikan penegasan (assertion) bahwa sistem biner sukses terkompilasi.
         debug!("Melakukan verifikasi kompilasi modul pendukung internal...");
         debug!("  [Fungsi Alias] Token '_e()'   -> [Terikat di Kompilasi biner]");
         debug!("  [Fungsi Alias] Token '_ic()'  -> [Terikat di Kompilasi biner]");
@@ -140,6 +151,7 @@ pub fn audit_komponen_sistem() -> Result<(), ()> {
         tahan_layar_interaktif();
         Ok(())
     } else {
+        // 4. LOG LEVEL: ERROR (Kritis, akan selalu muncul di terminal)
         // KOREKSI AMAN: Pastikan log error mencetak jalur absolut yang sebenarnya dicari agar informatif
         error!("FATAL ERROR: Berkas tidak ditemukan secara fisik di jalur: '{}'", jalur_absolut_utils);
         error!("Struktur proyek korup atau tidak sejajar. Skrip dihentikan secara paksa.");
@@ -166,7 +178,7 @@ Buka berkas utama `src/main.rs` Anda. Kita perlu mendaftarkan modul baru ini dan
 
 Sesuaikan bagian atas `src/main.rs` Anda menjadi susunan berikut:
 ```rust
-mod utils;
+mod utils; // Menghubungkan file utils.rs
 mod verbose_init; // 1. Daftarkan modul verbose idiomatik
 
 fn main() {
@@ -175,13 +187,23 @@ fn main() {
     env_logger::init();
 
     // 3. Jalankan audit kesehatan komponen sistem secara verbose
-    let _ = verbose_init::audit_komponen_sistem();
+    let _ = verbose_init::audit_komponen_sistem();    // Bersihkan layar terminal ala Rust (menggunakan ANSI Escape Code)
 
-    // Jalankan kesiapan database repositori bawaan Anda
-    repo::pastikan_file_repo_ada();
+    print!("\x1B[2J\x1B[1;1H");
 
-    'menu_utama: loop {
-        // ... sisa kode main.rs ke bawah biarkan utuh tanpa ada perubahan ...
+    utils::_cc("========================================");
+    utils::_cc("   UJI COBA MODUL UTILS VERSI RUST      ");
+    utils::_cc("========================================");
+
+    utils::_o("Sistem warna berhasil dikonversi!");
+    utils::_w("Ini adalah contoh visual peringatan.");
+    utils::_e("Ini adalah contoh jika ada proses error.");
+    
+    utils::_ls("Branch saat ini terdeteksi", Some("main"));
+    
+    utils::_cc("----------------------------------------");
+    utils::_pp(); // Menahan layar terminal
+}
 
 ```
 
@@ -193,7 +215,7 @@ Keunggulan utama dari standar industri ini adalah Anda memegang kendali penuh at
 ### Opsi A: Jalankan Mode Normal (Sama seperti aplikasi rilis resmi)
 Jika Anda hanya ingin menggunakan aplikasi secara bersih tanpa terganggu oleh rentetan baris teks debugging, jalankan perintah standar:
 ```bash
-cargo run
+cargo run --manifest-path $HOME/gsm/Cargo.toml
 
 ```
 > Hasil: Pesan `debug!` akan disembunyikan otomatis oleh Rust. Aplikasi akan langsung melompat masuk membuka Menu Utama.
@@ -201,7 +223,7 @@ cargo run
 ## Opsi B: Jalankan Mode Verbose / Debug (Sama seperti skrip Bash Anda)
 Jika Anda sedang melakukan pengembangan kode dan ingin memantau kesehatan internal *file checking* secara mendalam, suntikkan variabel `RUST_LOG=debug` di depannya:
 ```bash
-RUST_LOG=debug cargo run
+RUST_LOG=debug cargo run --manifest-path $HOME/gsm/Cargo.toml
 
 ```
 > Hasil: Rust akan mengaktifkan seluruh sensor pelacakan teks kuning, hijau, dan abu-abu secara mendetail, serta memicu fungsi penahanan tombol Enter (`read -r`) persis seperti perilaku skrip Bash lama Anda!
