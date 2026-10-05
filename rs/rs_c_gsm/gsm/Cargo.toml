@@ -1,0 +1,9 @@
+[package]
+name = "gsm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+crossterm = "0.29.0"
+log = "0.4.34"           # Facade logging standar Rust
+env_logger = "0.11.11"   # Logger terminal berbasis environment variable
