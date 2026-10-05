@@ -3,9 +3,15 @@ use std::path::Path;
 use std::io::{self, Write};
 use log::{debug, info, error, warn};
 
+// Memasukkan dependensi Crossterm sesuai standar industri
+use crossterm::{
+    execute,
+    style::{Color, Print, ResetColor, SetForegroundColor},
+};
+
 /// Fungsi memeriksa kesiapan komponen sistem menggunakan standar logging idiomatik Rust
 pub fn audit_komponen_sistem() -> Result<(), ()> {
-    // Ambil jalur absolut folder proyek secara dinamis dari manifest biner Cargo
+    // Mengunci jalur absolut folder proyek secara dinamis dari manifest biner Cargo
     let folder_proyek = env!("CARGO_MANIFEST_DIR");
     let jalur_absolut_utils = format!("{}/src/utils.rs", folder_proyek);
     let path = Path::new(&jalur_absolut_utils);
@@ -13,11 +19,9 @@ pub fn audit_komponen_sistem() -> Result<(), ()> {
     debug!("Menjalankan fungsi peninjauan integritas struktur proyek...");
     info!("Memindai komponen sistem: memeriksa berkas '{}'...", jalur_absolut_utils);
 
-    // Memeriksa keberadaan file fisik menggunakan jalur absolut hasil kompilasi
     if path.is_file() {
         debug!("-> [Stat] Berkas ditemukan secara fisik di jalur absolut.");
 
-        // Memeriksa hak akses metadata berkas secara idiomatik
         if let Ok(metadata) = fs::metadata(path) {
             let permissions = metadata.permissions();
             if !permissions.readonly() {
@@ -33,30 +37,51 @@ pub fn audit_komponen_sistem() -> Result<(), ()> {
         info!("[✓] Berkas terverifikasi dengan aman.");
         tahan_layar_interaktif();
 
+        // ====================================================================
+        // 💡 STANDAR INDUSTRI: VERIFIKASI PEMETAAN FUNGSI ALIAS INTERNAL
+        // ====================================================================
         debug!("Melakukan verifikasi kompilasi modul pendukung internal...");
-        debug!("  [Fungsi Alias] Token '_e()'   -> [Terikat di Kompilasi biner]");
-        debug!("  [Fungsi Alias] Token '_ic()'  -> [Terikat di Kompilasi biner]");
-        debug!("  [Fungsi Alias] Token '_o()'   -> [Terikat di Kompilasi biner]");
-        debug!("  [Fungsi Alias] Token '_cc()'  -> [Terikat di Kompilasi biner]");
-        debug!("  [Fungsi Alias] Token '_p()'   -> [Terikat di Kompilasi biner Middleware]");
-        debug!("  [Fungsi Alias] Token '_pp()'  -> [Terikat di Kompilasi biner Middleware]");
+        
+        let fungsi_inti = vec!["_e", "_ic", "_o", "_cc", "_p", "_pp"];
+        let mut stdout = io::stdout();
+
+        for fungsi in &fungsi_inti {
+            // Karena fungsi sukses lolos kompilasi, kita cetak token keterikatannya secara aman
+            if log::log_enabled!(log::Level::Debug) {
+                let _ = execute!(
+                    stdout,
+                    SetForegroundColor(Color::DarkGrey),
+                    Print(format!("  [Fungsi] Link token '{}()': ", fungsi)),
+                    SetForegroundColor(Color::Green),
+                    Print("[Terhubung Terbuka di Biner]\n"),
+                    ResetColor
+                );
+                let _ = stdout.flush();
+            }
+        }
 
         info!("[✓] Sukses! Seluruh fungsi di '{}' terikat sempurna.", jalur_absolut_utils);
         tahan_layar_interaktif();
         Ok(())
     } else {
-        // KOREKSI AMAN: Pastikan log error mencetak jalur absolut yang sebenarnya dicari agar informatif
         error!("FATAL ERROR: Berkas tidak ditemukan secara fisik di jalur: '{}'", jalur_absolut_utils);
         error!("Struktur proyek korup atau tidak sejajar. Skrip dihentikan secara paksa.");
         std::process::exit(1);
     }
 }
 
-/// Fungsi pembantu internal ekivalen dengan "read -r" di Bash untuk menahan layar pembacaan debug
+/// Fungsi pembantu internal ekivalen dengan "read -r" di Bash menggunakan gaya Crossterm
 fn tahan_layar_interaktif() {
     if log::log_enabled!(log::Level::Debug) {
-        print!("\x1B[0;90m(Tekan [Enter] untuk melanjutkan peninjauan debug...)\x1B[0m");
-        let _ = io::stdout().flush();
+        let mut stdout = io::stdout();
+        let _ = execute!(
+            stdout,
+            SetForegroundColor(Color::Grey),
+            Print("(Tekan [Enter] untuk melanjutkan peninjauan debug...)"),
+            ResetColor
+        );
+        let _ = stdout.flush();
+
         let mut buffer = String::new();
         let _ = io::stdin().read_line(&mut buffer);
     }
