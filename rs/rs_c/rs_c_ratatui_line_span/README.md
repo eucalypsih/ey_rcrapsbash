@@ -1,8 +1,4 @@
-
-
-## 💡 Penjelasan Aturan Turbofish pada Objek ini:
-1. `Span::<'static>` (Benar): `Span` adalah sebuah struktur data (*struct*) yang memiliki parameter *lifetime* (`Span<'a>`). Karena Anda ingin menegaskan bahwa teks di dalamnya akan hidup selama program berjalan (*static lifetime*), Anda **wajib** menggunakan turbofish `::<'static>` langsung setelah nama struct `Span` jika ingin menuliskannya secara eksplisit di dalam makro `vec![]`.
-2. `.styled(...)` (Tidak pakai Turbofish): Setelah menentukan tipe/lifetime dari `Span::<'static>`, Anda langsung memanggil metode `.styled()` seperti biasa. Menuliskan `Span::<'static>::styled::<&str>(...)` tidak diperlukan dan justru akan memicu error karena kompilator Rust sudah langsung tahu tipe data string-nya dari argumen pertama.
+# 
 
 ---
 
