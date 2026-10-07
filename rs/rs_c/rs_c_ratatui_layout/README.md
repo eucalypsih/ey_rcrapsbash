@@ -140,11 +140,53 @@ Mendeklarasikan `Line<'static>` adalah praktik terbaik (*best practice*) di Rata
 ## 3. Mematuhi Prinsip Keterbacaan Kode (Clean Code & Readability)
 Dibandingkan dengan melakukan metode *chaining* yang terlalu panjang dan menumpuk seperti di blok pertama dan kedua, pemisahan variabel seperti `daftar_constraint_vertikal` dan `layout_vertikal` membuat kode Anda jauh lebih mudah dibaca, di-debug, serta dirawat (*maintainable*) oleh sesama programmer Rust.
 
+---
 
+<br>
 
+---
 
+aa: 
+pembuatan objek `Constraint::Percentage(5)` **tidak menggunakan operator turbofish** (`::<>`).
 
+Pada bahasa pemrograman Rust, operator turbofish (`::<>`) hanya digunakan saat kita memanggil sebuah fungsi atau struktur data yang bersifat generik untuk menentukan tipe datanya secara eksplisit ketika kompilator tidak bisa menebaknya (contoh: `.collect::<Vec<String>>()` atau `std::mem::size_of::<i32>()`).
 
+Berikut penjelasan mengapa `Constraint::Percentage` tidak membutuhkannya:
+
+## 1. `Constraint` adalah sebuah Enum murni
+Di dalam pustaka Ratatui, `Constraint` dirancang sebagai sebuah enum biasa (bukan generik). Varian `Percentage` di dalamnya langsung menerima tipe data angka integer standar (biasanya `u16`).
+
+Strukturnya di balik layar kira-kira seperti ini:
+```rust
+pub enum Constraint {
+    Percentage(u16),
+    Ratio(u32, u32),
+    Length(u16),
+    Max(u16),
+    Min(u16),
+    // ...
+}
+
+```
+Karena varian ini sudah pasti menerima angka integer, kompilator Rust langsung tahu cara memproses angka `5` tanpa perlu bantuan turbofish.
+
+## 2. Penulisan Idiomatik yang Tepat
+Jika Anda ingin menuliskan tipe datanya secara super eksplisit tanpa melanggar sintaksis Rust, Anda cukup menegaskan tipe data angka integer di dalam argumennya saja, seperti ini:
+- Sintaksis Standar (Disarankan):
+```rust
+Constraint::Percentage(5)
+
+```
+
+- Sintaksis Eksplisit Murni (Tipe Data Angka Ditegaskan):
+```rust
+Constraint::Percentage(5_u16)
+
+```
+Jadi, penulisan `Constraint::Percentage::<u16>(5)` justru akan menghasilkan **error kompilasi** (*compile error*) karena varian enum tersebut tidak memiliki parameter generik `<T>` yang perlu diisi.
+
+qa: 
+Apakah ada bagian komponen Ratatui lain yang ingin Anda pastikan ketegasan tipe datanya?
 
 
 
