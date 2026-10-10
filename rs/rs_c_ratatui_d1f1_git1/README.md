@@ -419,6 +419,8 @@ Jika Anda butuh bantuan untuk **menambahkan penjelasan tambahan** pada komponen 
 qa: 
 Apakah Anda ingin menambahkan indikator animasi loading (seperti teks berputar` [ / ]`, `[ - ]`, `[ \ ]`) saat status bernilai `CloneStatus::Cloning`, atau perlu **penanganan otomatis pembuatan berkas SSH Key** secara aman dari dalam aplikasi TUI ini?
 
+- Apakah Anda ingin agar isi **`file_content` otomatis diperbarui (di-reload)** dari disk setelah status clone berubah menjadi `CloneStatus::Success`?
+- Apakah Anda membutuhkan integrasi penanganan **path ekspansi tilde (`~`)** agar aman dibaca oleh perintah sistem internal Rust saat memproses `~/.ssh/id_rsa`?
 
 
 
