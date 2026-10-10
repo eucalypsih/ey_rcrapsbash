@@ -204,14 +204,23 @@ struct AppState {
     repo: String,
     owner: String,
     owner_privkey: String,
+    output_dir: String,
     file_content: String,
     clone_status: CloneStatus,
     should_quit: bool,
 }
 
 impl AppState {
-    fn new(branch: &str, repo: &str, owner: &str, privkey_path: &str, file_path: &str) -> Self {
-        let konten: String = fs::read_to_string(file_path)
+    fn new(
+        branch: &str, 
+        repo: &str, 
+        owner: &str, 
+        privkey_path: &str, 
+        output_dir: &str, 
+        file_name: &str
+    ) -> Self {
+        let file_path: String = format!("{}/{}", output_dir, file_name);
+        let konten: String = fs::read_to_string(&file_path)
             .unwrap_or_else(|_| String::from("Gagal memuat berkas: File tidak ditemukan."));
 
         Self {
@@ -219,6 +228,7 @@ impl AppState {
             repo: repo.to_string(),
             owner: owner.to_string(),
             owner_privkey: privkey_path.to_string(),
+            output_dir: output_dir.to_string(),
             file_content: konten,
             clone_status: CloneStatus::Idle,
             should_quit: false,
@@ -241,6 +251,7 @@ impl AppState {
         let owner: String = self.owner.clone();
         let repo: String = self.repo.clone();
         let privkey: String = self.owner_privkey.clone();
+        let output_dir: String = self.output_dir.clone();
 
         // Standar Industri: Jalankan I/O heavy / blocking command di Thread terpisah
         thread::spawn(move || {
@@ -256,7 +267,7 @@ impl AppState {
                     "-c",
                     &format!("core.sshCommand={}", ssh_command),
                     &repo_url,
-                    "mintasaran",
+                    &output_dir,
                 ])
                 .output();
 
@@ -288,13 +299,19 @@ fn main() -> Result<(), io::Error> {
     let backend: CrosstermBackend<io::Stdout> = CrosstermBackend::new(stdout);
     let mut terminal: Terminal<CrosstermBackend<io::Stdout>> = Terminal::new(backend)?;
 
+    // Parameterisasi konfigurasi
+    let private_key_path: &str = "~/.ssh/id_rsa"; // Contoh lokasi private key
+    let destination_dir: &str = "output_repo";
+    let target_file: &str = "log.txt";
+
     // Inisialisasi State dengan menyertakan path private key SSH
     let mut app_state: AppState = AppState::new(
         "main", 
         "ey_rcrapsbash", 
         "eucalypsih", 
-        "~/.ssh/id_rsa", // Contoh lokasi private key
-        "log.txt"
+        private_key_path,
+        destination_dir,
+        target_file
     );
 
     // Setup channel komunikasi antar-thread secara eksplisit
@@ -316,6 +333,10 @@ fn main() -> Result<(), io::Error> {
             Constraint::Percentage(96),
             Constraint::Percentage(2),
         ]);
+
+    // Konversi Type-Safe konstan untuk Polling (Menggantikan parameter primitif mentah)
+    // Menggunakan implementasi standard library u64 -> Duration secara aman
+    let poll_timeout: Duration = Duration::from_millis(16);
 
     // LOOP RENDERING
     while !app_state.should_quit {
@@ -375,7 +396,7 @@ fn main() -> Result<(), io::Error> {
         })?;
 
         // EVENT HANDLING
-        if event::poll(Duration::from_millis(16))? { 
+        if event::poll(poll_timeout)? { 
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press { 
                     match key.code {
