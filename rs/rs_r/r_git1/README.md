@@ -257,6 +257,20 @@ Apakah Anda ingin saya mengubah struktur tabel ini ke format lain seperti JSON a
 qa: 
 Apakah Anda berencana menambahkan fitur interaktif pada TUI ini seperti navigasi tab, input teks dinamis, atau sistem **asynchronous task** (menggunakan Tokio) agar `git clone` berjalan di latar belakang tanpa membekukan antarmuka? Jika iya, beri tahu saya agar kodenya dapat disesuaikan kembali!
 
+---
+
+```bash
+cargo run --manifest-path $HOME/r_git1/Cargo.toml
+
+```
+
+
+
+
+
+
+
+
 
 
 
