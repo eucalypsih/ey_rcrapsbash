@@ -39,7 +39,8 @@ Rekomendasi terbaik dan yang paling memenuhi standar industri Rust adalah `outpu
 Berikut adalah analisis mendalam dan rekomendasi penggunaannya untuk kasus `Command` bawaan Rust:
 
 ## 1. Rekomendasi Utama untuk `Command::args`
-Jika Anda memasukkan data ke dalam array `Command::args([...])`, rekomendasi yang paling bersih, aman, dan efisien adalah:```rust
+Jika Anda memasukkan data ke dalam array `Command::args([...])`, rekomendasi yang paling bersih, aman, dan efisien adalah:
+```rust
 &output_dir.to_string_lossy()
 
 ```
