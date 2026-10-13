@@ -158,6 +158,24 @@ let mut app_state: AppState = AppState::new(AppConfig {
 
 # 1
 ```rust
+    pub sparse_status: SparseStatus,
+    should_quit: bool,
+}
+
+impl AppState {
+    /// Inisialisasi awal Builder Pattern secara standar industri.
+    pub fn builder() -> AppStateBuilder {
+        AppStateBuilder::default()
+    }
+
+    fn quit(&mut self) {
+        self.should_quit = true;
+    }
+
+```
+
+# 2
+```rust
             // Jika seluruh tahapan perintah di atas berhasil dieksekusi tanpa error
             let _ = tx.send(SparseStatus::Success(MSG_SPARSE_SUCCESS.to_string()));
         });
@@ -222,7 +240,7 @@ fn main() -> Result<(), io::Error> {
 
 ```
 
-# 2
+# 3
 ```rust
     // Parameterisasi konfigurasi
     let private_key_path: &str = "~/.ssh/id_rsa"; // Contoh lokasi private key
