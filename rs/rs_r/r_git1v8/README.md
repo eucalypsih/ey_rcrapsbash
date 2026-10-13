@@ -152,6 +152,100 @@ let mut app_state: AppState = AppState::new(AppConfig {
 
 ---
 
+<br>
+
+---
+
+# 1
+```rust
+            // Jika seluruh tahapan perintah di atas berhasil dieksekusi tanpa error
+            let _ = tx.send(SparseStatus::Success(MSG_SPARSE_SUCCESS.to_string()));
+        });
+    }
+}
+
+// =========================================================================
+// STRUKTUR BUILDER PATTERN (Anti Tertukar Parameter)
+// =========================================================================
+#[derive(Default)]
+pub struct AppStateBuilder {
+    branch: Option<String>,
+    repo: Option<String>,
+    owner: Option<String>,
+    privkey_path: Option<PathBuf>,
+    output_dir: Option<PathBuf>,
+}
+
+impl AppStateBuilder {
+    pub fn with_branch(mut self, branch: &str) -> Self {
+        self.branch = Some(branch.to_string());
+        self
+    }
+
+    pub fn with_repo(mut self, repo: &str) -> Self {
+        self.repo = Some(repo.to_string());
+        self
+    }
+
+    pub fn with_owner(mut self, owner: &str) -> Self {
+        self.owner = Some(owner.to_string());
+        self
+    }
+
+    pub fn with_privkey_path<P: AsRef<Path>>(mut self, path: P) -> Self {
+        self.privkey_path = Some(path.as_ref().to_path_buf());
+        self
+    }
+
+    pub fn with_output_dir<P: AsRef<Path>>(mut self, path: P) -> Self {
+        self.output_dir = Some(path.as_ref().to_path_buf());
+        self
+    }
+
+    pub fn build(self) -> AppState {
+        AppState {
+            current_branch: self.branch.unwrap_or_else(|| "main".to_string()),
+            repo: self.repo.unwrap_or_default(),
+            owner: self.owner.unwrap_or_default(),
+            privkey_path: self.privkey_path.unwrap_or_default(),
+            output_dir: self.output_dir.unwrap_or_default(),
+            sparse_status: SparseStatus::Idle,
+            should_quit: false,
+        }
+    }
+}
+
+// =========================================================================
+// MAIN RUNTIME LOOP
+// =========================================================================
+fn main() -> Result<(), io::Error> {
+
+```
+
+# 2
+```rust
+    // Parameterisasi konfigurasi
+    let private_key_path: &str = "~/.ssh/id_rsa"; // Contoh lokasi private key
+    let destination_dir: &str = "./repo_output";
+
+    // Inisialisasi State dengan menyertakan path private key SSH
+    // PROTEKSI PARAMETER: Menggunakan Builder Pattern, urutan pemanggilan di bawah bebas dan aman
+    let mut app_state: AppState = AppState::builder()
+        .with_owner("eucalypsih")
+        .with_repo("ey_rcrapsbash")
+        .with_branch("main")
+        .with_privkey_path(private_key_path)
+        .with_output_dir(destination_dir)
+        .build();
+
+    // Setup channel komunikasi antar-thread secara eksplisit
+    let (tx, rx): (Sender<SparseStatus>, Receiver<SparseStatus>) = mpsc::channel();
+
+```
+
+
+
+
 - `r_git1v8/Cargo.toml`
 ```toml
 [package]
