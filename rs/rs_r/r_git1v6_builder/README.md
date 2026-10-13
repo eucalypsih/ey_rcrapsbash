@@ -255,7 +255,7 @@ fn main() -> Result<(), io::Error> {
         .build();
 
     // Setup channel komunikasi antar-thread secara eksplisit
-    let (tx, rx): (Sender<SparseStatus>, Receiver<SparseStatus>) = mpsc::channel();
+    let (tx, rx): (Sender<CloneStatus>, Receiver<CloneStatus>) = mpsc::channel();
 
 ```
 
