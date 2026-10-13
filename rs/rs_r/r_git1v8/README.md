@@ -243,8 +243,11 @@ fn main() -> Result<(), io::Error> {
 
 ```
 
+---
 
+<br>
 
+---
 
 - `r_git1v8/Cargo.toml`
 ```toml
