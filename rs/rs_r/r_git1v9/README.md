@@ -16,8 +16,6 @@ Kode di bawah ini tetap mempertahankan arsitektur **Builder Pattern**, manajemen
 
 ```
 
----
-
 # 2
 ```rust
             let repo_url: String = format!("git@github.com:{}/{}.git", owner, repo);
@@ -28,8 +26,6 @@ Kode di bawah ini tetap mempertahankan arsitektur **Builder Pattern**, manajemen
                 let _ = tx.send(SparseStatus::Error(format_subsystem_error(&e.to_string())));
 
 ```
-
----
 
 # 3
 ```rust
@@ -57,7 +53,7 @@ Kode di bawah ini tetap mempertahankan arsitektur **Builder Pattern**, manajemen
 
 ---
 
-- `r_git1v9`
+- `r_git1v9/Cargo.toml`
 ```toml
 [package]
 name = "gsm"
