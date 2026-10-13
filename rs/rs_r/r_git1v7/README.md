@@ -157,8 +157,8 @@ impl AppState {
         self.should_quit = true;
     }
 
-    /// Memicu proses git clone di background thread agar tidak memblokir rendering TUI.
-    fn trigger_git_clone(&mut self, tx: Sender<SparseStatus>) {
+    /// Memicu proses inisialisasi Git Sparse Checkout di background thread agar tidak memblokir rendering TUI.
+    fn trigger_git_sparse(&mut self, tx: Sender<SparseStatus>) {
         // Cegah eksekusi ganda jika proses sedang berjalan
         if self.sparse_status == SparseStatus::Configuring {
             return;
@@ -332,7 +332,7 @@ fn main() -> Result<(), io::Error> {
                         KeyCode::Char('q') | KeyCode::Esc => app_state.quit(),
                         KeyCode::Char('c') => {
                             // Kirim klon ke background thread menggunakan tx clone channel
-                            app_state.trigger_git_clone(tx.clone());
+                            app_state.trigger_git_sparse(tx.clone());
                         }
                         _ => {}
                     }
