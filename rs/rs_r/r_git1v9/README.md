@@ -5,6 +5,7 @@ Berikut adalah kode program **Ratatui TUI lengkap** yang telah disesuaikan agar 
 
 Kode di bawah ini tetap mempertahankan arsitektur **Builder Pattern**, manajemen *state* asinkron via *background thread*, tipe data eksplisit murni, serta konversi kalkulasi koordinat layar secara **type-safe** tanpa operator primitif `as`.
 
+# 1
 ```rust
         let privkey: PathBuf = self.privkey_path.clone();
         
@@ -17,6 +18,7 @@ Kode di bawah ini tetap mempertahankan arsitektur **Builder Pattern**, manajemen
 
 ---
 
+# 2
 ```rust
             let repo_url: String = format!("git@github.com:{}/{}.git", owner, repo);
             let target_path_str: String = dynamic_local_path.to_string_lossy().into_owned();
@@ -29,6 +31,7 @@ Kode di bawah ini tetap mempertahankan arsitektur **Builder Pattern**, manajemen
 
 ---
 
+# 3
 ```rust
     let private_key_path: &str = "~/.ssh/id_rsa"; 
     let base_destination_dir: &str = "./repo_output"; // Bertindak sebagai root direktori utama
