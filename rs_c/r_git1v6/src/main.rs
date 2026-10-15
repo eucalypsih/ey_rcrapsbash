@@ -212,19 +212,25 @@ fn main() -> Result<(), io::Error> {
         terminal.draw(|f: &mut Frame| {
             let area_layar: Rect = f.area();
             let current_text = app_state.clone_status.to_text();
-            
-            // 1. HITUNG BATAS MAKSIMAL LEBAR SECARA AMAN
-            let text_length = current_text.len();
+
+            // 1. HITUNG PANJANG TEKS BERSIH (Gunakan lebar visual teks asli)
+            // .width() dari ratatui Text/Span menghitung lebar visual string dengan tepat
+            let text_visual_width = u16::try_from(current_text.width()).unwrap_or(30);
+
+            // Batas maksimal lebar layar dikurangi padding luar (kiri 2 + kanan bebas)
             let max_allowed_width = area_layar.width.saturating_sub(4);
-            let dynamic_width = (u16::try_from(text_length).unwrap_or(30))
+
+            // Lebar kotak dinamis: pas dengan teks, tapi tidak melebihi layar, dan minimal lebar 30
+            let dynamic_width = text_visual_width
                 .min(max_allowed_width)
-                .max(30) + 4;
+                .max(30) + 4; // +4 untuk space border kiri/kanan dan padding dalam
 
             // 2. HITUNG TINGGI VERTIKAL SECARA DINAMIS BERDASARKAN PEMBUNGKUSAN TEKS
-            // Rumus: Kelipatan baris baru = (panjang teks / lebar bersih dalam kotak) + 1 baris
-            let inner_width = dynamic_width.saturating_sub(2);
-            let estimated_lines = if inner_width > 0 {
-                (u16::try_from(text_length).unwrap_or(30) / inner_width) + 1
+            let inner_width = dynamic_width.saturating_sub(2); // lebar bersih dalam kotak
+            // Kelipatan baris baru
+            let estimated_lines = if inner_width > 0 && text_visual_width > 0 {
+                // Jika teks lebih panjang dari space dalam kotak, dia akan membungkus (wrap)
+                (text_visual_width + inner_width - 1) / inner_width
             } else {
                 1
             };

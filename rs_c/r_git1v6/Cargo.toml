@@ -1,8 +1,9 @@
 [package]
-name = "r_git1v6"
+name = "gsm"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 crossterm = "0.29.0"
-ratatui = "0.30.2"   # Tambahkan library TUI standar industri Rust
+ratatui = "0.30.2"       # Tambahkan library TUI standar industri Rust
+unicode-width = "0.2.2"  # Gunakan versi terbaru yang tersedia
