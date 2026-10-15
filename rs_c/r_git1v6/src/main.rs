@@ -215,7 +215,7 @@ fn main() -> Result<(), io::Error> {
 
             // 1. HITUNG PANJANG TEKS BERSIH (Gunakan lebar visual teks asli)
             // .width() dari ratatui Text/Span menghitung lebar visual string dengan tepat
-            let text_visual_width = u16::try_from(current_text.width()).unwrap_or(30);
+            let text_visual_width = u16::try_from(current_text.as_str().width()).unwrap_or(30);
 
             // Batas maksimal lebar layar dikurangi padding luar (kiri 2 + kanan bebas)
             let max_allowed_width = area_layar.width.saturating_sub(4);
