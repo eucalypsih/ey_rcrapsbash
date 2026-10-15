@@ -1,0 +1,8 @@
+[package]
+name = "r_git1v6"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+crossterm = "0.29.0"
+ratatui = "0.30.2"   # Tambahkan library TUI standar industri Rust
