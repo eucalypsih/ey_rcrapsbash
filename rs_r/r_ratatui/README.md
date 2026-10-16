@@ -11,7 +11,6 @@ Berikut adalah cara membuat, menata gaya, dan menampilkan `Text` di Ratatui.
 
 ## 1. Cara Membuat `Text`
 Anda bisa membuat objek `Text` dari string biasa (`&str` atau `String`), dari kumpulan `Line`, atau menggunakan fungsi bawaan.
-
 ```rust
 use ratatui::text::{Text, Line, Span};
 use ratatui::style::{Style, Color, Modifier};
@@ -32,7 +31,6 @@ let text_kustom = Text::from(vec![
 
 ## 2. Menata Gaya (*Styling*) dan Penyelarasan (*Alignment*)
 Struktur `Text` menyediakan metode *builder* yang intuitif untuk mengubah tampilan seluruh teks sekaligus.
-
 ```rust
 // Memberikan warna latar belakang, warna teks, dan format rata tengah
 let text_gaya = Text::from("Halo Ratatui!")
@@ -45,8 +43,8 @@ let text_gaya = Text::from("Halo Ratatui!")
 Di dalam fungsi `render` atau closure `terminal.draw`, Anda memiliki dua opsi untuk menampilkan `Text` ke area (`Rect`) yang ditentukan:
 
 ### Opsi A: Menggunakan Widget `Paragraph` (Sangat Direkomendasikan)
-
-Menggunakan `Paragraph` lebih disukai karena mendukung fitur pembungkusan teks (*line wrapping*) otomatis dan *scrolling*.```rust
+Menggunakan `Paragraph` lebih disukai karena mendukung fitur pembungkusan teks (*line wrapping*) otomatis dan *scrolling*.
+```rust
 use ratatui::widgets::Paragraph;
 
 fn draw_ui(f: &mut ratatui::Frame, area: ratatui::layout::Rect) {
@@ -63,7 +61,6 @@ fn draw_ui(f: &mut ratatui::Frame, area: ratatui::layout::Rect) {
 
 ### Opsi B: Merender `Text` Secara Langsung
 Karena `Text` mengimplementasikan *trait* `Widget`, Anda bisa langsung merendernya tanpa pembungkus, tetapi teks yang terlalu panjang akan terpotong (tidak otomatis pindah baris).
-
 ```rust
 fn draw_ui(f: &mut ratatui::Frame, area: ratatui::layout::Rect) {
     let teks = Text::from("Teks langsung tanpa paragraph widget.");
