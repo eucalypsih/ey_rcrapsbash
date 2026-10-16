@@ -30,13 +30,13 @@ use crossterm::{
 };
 use ratatui::{
     backend::{Backend, CrosstermBackend},
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, Borders, Paragraph},
     Frame, Terminal,
 };
-use std::io::{self, stdout, Stdout};
+use std::io::{self, stdout};
 
 // ==========================================
 // 1. STRUKTUR DATA APLIKASI (STATE)
