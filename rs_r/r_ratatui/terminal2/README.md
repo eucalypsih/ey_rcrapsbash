@@ -75,7 +75,7 @@ Untuk menangani *error* dengan benar, pastikan Anda memanggil restore_terminal b
 ```rust
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Inisialisasi terminal
-    let mut terminal: Terminal<CrosstermBackend<Stdout>> = setup_terminal()?;
+    let terminal: Terminal<CrosstermBackend<Stdout>> = setup_terminal()?;
 
     // Jalankan logika aplikasi utama Anda di sini
     // Contoh:
@@ -93,31 +93,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 qa: 
 Apakah Anda ingin dibuatkan juga struktur fungsi `run_app` (Main Loop) untuk menangani *keyboard event* (seperti mendeteksi tombol `Esc` atau `q` untuk keluar)?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

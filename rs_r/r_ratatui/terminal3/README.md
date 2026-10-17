@@ -63,9 +63,11 @@ Berikut adalah cara Anda menggabungkan fungsi `setup_terminal`, `run_app`, dan `
 ```rust
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Inisialisasi terminal
+    // terminal: Terminal<CrosstermBackend<Stdout>> =
     let mut terminal = setup_terminal()?;
 
     // 2. Jalankan aplikasi utama
+    // app_result: Result<(), std::io::Error> =
     let app_result = run_app(&mut terminal);
 
     // 3. Pastikan terminal SELALU dipulihkan kembali ke normal, 
