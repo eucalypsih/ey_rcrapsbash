@@ -874,6 +874,343 @@ fn ui(f: &mut Frame, app: &App) {
 
 ```
 
+---
+
+<br>
+
+---
+
+<br>
+
+---
+
+aa: 
+Kode Rust Anda yang menggunakan **Ratatui** dan **Crossterm** sudah memiliki struktur penanganan UI dan logika JSON manual yang sangat baik. Namun, terdapat satu masalah fatal pada petunjuk bawah (sektor footer) yang tertulis: `"Navigasi: [Tab] atau / Pindah Menu | ..."`. Tombol `/` sebenarnya **tidak terdaftar** di dalam penanganan *event input* (`run_app`). Di dalam kode, Anda memetakan tombol `1` dan `2` untuk pindah menu, bukan `/`.
+
+Berikut adalah beberapa perbaikan, peningkatan efisiensi, dan perapian kode (*code cleanup*) untuk aplikasi Anda:
+
+## 🛠️ Poin-Poin Perbaikan & Optimasi
+1. Sinkronisasi Sinkronisasi Hotkeys: Memperbarui teks footer agar sesuai dengan *event listener* asli (`[Tab] atau [1]/[2] untuk Pindah Menu`).
+2. Efisiensi `muat_dari_json`: String JSON Array dibersihkan secara lebih aman menggunakan manipulasi *slice* bawaan Rust agar tidak rentan *error* jika terdapat spasi berlebih di ujung kurung siku.
+3. Alokasi String Teroptimasi: Mengganti `.to_string()` atau `.clone()` yang tidak perlu pada widget paragraf statis untuk menghemat alokasi memori di setiap *frame render loop*.
+4. Pencegahan Duplikasi String: Memanfaatkan `String::with_capacity` pada generator JSON manual agar memori dialokasikan sekaligus di awal.
+
+qa: 
+Apakah Anda ingin menambahkan fitur lain seperti **menghapus baris riwayat tertentu** langsung dari TUI atau ingin saya buatkan integrasi otomatis menggunakan *crate* **serde_json** agar pengolahan JSON jauh lebih aman?
+
+---
+
+```rust
+use crossterm::{
+    event::{self, Event, KeyCode, KeyEventKind},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
+};
+use ratatui::{
+    backend::CrosstermBackend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::{Line, Span, Text},
+    widgets::{Block, Borders, Paragraph, Tabs},
+    Frame, Terminal,
+};
+use std::fs::File;
+use std::io::{self, stdout, Read, Write, Stdout};
+use std::path::Path;
+
+const MAX_KARAKTER: usize = 20;
+const FILE_PATH: &str = "riwayat_pesan.json"; // Ekstensi diubah menjadi .json
+
+// ==========================================
+// 1. STRUKTUR DATA & ENUM TAB MENU
+// ==========================================
+#[derive(Copy, Clone, PartialEq)]
+enum MenuTab {
+    Input,
+    Riwayat,
+}
+
+struct App {
+    pub input_teks: String,
+    pub teks_tersimpan: Vec<String>,
+    pub error_pesan: Option<String>,
+    pub aktif_tab: MenuTab,
+    pub harus_keluar: bool,
+}
+
+impl App {
+    fn new() -> Self {
+        let data_lama = Self::muat_dari_json();
+
+        Self {
+            input_teks: String::new(),
+            teks_tersimpan: data_lama,
+            error_pesan: None,
+            aktif_tab: MenuTab::Input,
+            harus_keluar: false,
+        }
+    }
+
+    // FUNGSI LOAD (DESERIALIZATION JSON MANUAL)
+    // Membaca file format JSON Array: ["a", "b", "c"] tanpa dependensi luar
+    fn muat_dari_json() -> Vec<String> {
+        let mut list_data = Vec::new();
+        
+        if Path::new(FILE_PATH).exists() {
+            if let Ok(mut file) = File::open(FILE_PATH) {
+                let mut konten = String::new();
+                if file.read_to_string(&mut konten).is_ok() {
+                    // Bersihkan karakter whitespace, [ dan ] di ujung string JSON array
+                    let bersih = konten.trim();
+                    // Pastikan teks diawali '[' dan diakhiri ']' sebelum memotong string
+                    if bersih.starts_with('[') && bersih.ends_with(']') {
+                        let isi_array = &bersih[1..bersih.len() - 1];
+                        if !isi_array.trim().is_empty() {
+                            // Memisahkan berdasarkan tanda koma ","
+                            for item in bersih.split(',') {
+                                // Bersihkan tanda kutip double (") dan spasi di sekitar teks kata
+                                let kata = item.trim().trim_matches('"');
+                                if !kata.is_empty() {
+                                    // Mengembalikan karakter escape JSON mentah jika ada (\") menjadi biasa
+                                    list_data.push(kata.replace("\\\"", "\""));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_data
+    }
+
+    // FUNGSI SAVE (SERIALIZATION JSON MANUAL)
+    // Menulis ulang seluruh struktur Vector menjadi string JSON Array yang valid
+    fn simpan_ke_json(&self) -> io::Result<()> {
+        let mut file = File::create(FILE_PATH)?;
+
+        // Optimasi: Alokasikan memori string di awal untuk mencegah re-alokasi berulang
+        let mut json_string = String::with_capacity(self.teks_tersimpan.len() * (MAX_KARAKTER + 5));
+        json_string.push('[');
+
+        for (i, teks) in self.teks_tersimpan.iter().enumerate() {
+            // Lakukan escape pada tanda kutip di dalam teks agar tidak merusak format JSON
+            let teks_escaped = teks.replace('"', "\\\"");
+            
+            json_string.push('"');
+            json_string.push_str(&teks_escaped);
+            json_string.push('"');
+
+            // Tambahkan koma pemisah jika bukan elemen terakhir
+            if i < self.teks_tersimpan.len() - 1 {
+                json_string.push_str(", ");
+            }
+        }
+        
+        json_string.push(']');
+        
+        // Tulis teks string JSON secara utuh ke file
+        file.write_all(json_string.as_bytes())?;
+        Ok(())
+    }
+
+    fn ganti_tab(&mut self) {
+        match self.aktif_tab {
+            MenuTab::Input => self.aktif_tab = MenuTab::Riwayat,
+            MenuTab::Riwayat => self.aktif_tab = MenuTab::Input,
+        }
+    }
+
+    fn tambah_karakter(&mut self, c: char) {
+        if self.input_teks.chars().count() < MAX_KARAKTER {
+            self.input_teks.push(c);
+            self.error_pesan = None;
+        } else {
+            self.error_pesan = Some(format!("Maksimal hanya boleh {} karakter!", MAX_KARAKTER));
+        }
+    }
+
+    fn hapus_karakter(&mut self) {
+        self.input_teks.pop();
+        self.error_pesan = None;
+    }
+
+    fn simpan_teks(&mut self) {
+        let teks_bersih = self.input_teks.trim().to_string();
+        if teks_bersih.is_empty() {
+            self.error_pesan = Some("Gagal! Input tidak boleh kosong.".to_string());
+        } else {
+            // Tambahkan dulu ke memori Vector aplikasi
+            self.teks_tersimpan.push(teks_bersih);
+
+            // Simpan keseluruhan data Vector terbaru ke file JSON (Overwrite model)
+            match self.simpan_ke_json() {
+                Ok(_) => {
+                    self.input_teks.clear();
+                    self.error_pesan = None;
+                }
+                Err(_) => {
+                    // Jika gagal tulis file, batalkan perubahan di Vector agar sinkron
+                    self.teks_tersimpan.pop();
+                    self.error_pesan = Some("Gagal menulis ke file JSON!".to_string());
+                }
+            }
+        }
+    }
+
+    fn keluar(&mut self) {
+        self.harus_keluar = true;
+    }
+}
+
+// ==========================================
+// 2. MAIN & RENDER LOOP
+// ==========================================
+fn main() -> io::Result<()> {
+    enable_raw_mode()?;
+    stdout().execute(EnterAlternateScreen)?;
+    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+
+    let mut app = App::new();
+    let res = run_app(&mut terminal, &mut app);
+
+    disable_raw_mode()?;
+    stdout().execute(LeaveAlternateScreen)?;
+    
+    if let Err(err) = res {
+        println!("Error: {:?}", err);
+    }
+    Ok(())
+}
+
+fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App) -> io::Result<()> {
+    while !app.harus_keluar {
+        terminal.draw(|f| ui(f, app))?;
+
+        if event::poll(std::time::Duration::from_millis(16))? {
+            if let Event::Key(key) = event::read()? {
+                if key.kind == KeyEventKind::Press {
+                    match key.code {
+                        KeyCode::Esc => app.keluar(),
+                        KeyCode::Tab => app.ganti_tab(),
+                        KeyCode::Char('1') => app.aktif_tab = MenuTab::Input,
+                        KeyCode::Char('2') => app.aktif_tab = MenuTab::Riwayat,
+
+                        KeyCode::Enter if app.aktif_tab == MenuTab::Input => app.simpan_teks(),
+                        KeyCode::Backspace if app.aktif_tab == MenuTab::Input => app.hapus_karakter(),
+                        KeyCode::Char(c) if app.aktif_tab == MenuTab::Input => app.tambah_karakter(c),
+                        
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+// ==========================================
+// 3. UI RENDERING LAYER
+// ==========================================
+fn ui(f: &mut Frame, app: &App) {
+    let susunan_utama = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3), // Header Tab Menu  -> Indeks [0]
+            Constraint::Min(0),    // Konten Dinamis   -> Indeks [1]
+            Constraint::Length(3), // Footer Informasi -> Indeks [2]
+        ])
+        .split(f.area());
+
+    // --- 1. SEKTOR HEADER: Widget Tabs ---
+    let daftar_judul = vec![" Halaman Input ", " Riwayat Penuh "];
+    let indeks_aktif = match app.aktif_tab {
+        MenuTab::Input => 0,
+        MenuTab::Riwayat => 1,
+    };
+
+    let komponen_tab = Tabs::new(daftar_judul)
+        .block(Block::default().borders(Borders::ALL).title("Menu Utama"))
+        .select(indeks_aktif)
+        .style(Style::default().fg(Color::DarkGray))
+        .highlight_style(
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+                .add_modifier(Modifier::UNDERLINED),
+        );
+    
+    // Perbaikan: Gunakan susunan_utama[0] untuk area Header
+    f.render_widget(komponen_tab, susunan_utama[0]);
+
+    // --- 2. SEKTOR KONTEN DINAMIS ---
+    match app.aktif_tab {
+        MenuTab::Input => {
+            let area_input = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Length(3), // Kotak Input -> Indeks [0]
+                    Constraint::Min(0),    // Area Pesan  -> Indeks [1]
+                ])
+                // Perbaikan: Lakukan split berdasarkan area konten dinamis yaitu susunan_utama[1]
+                .split(susunan_utama[1]);
+
+            let info_karakter = format!(" [{}/{}]", app.input_teks.chars().count(), MAX_KARAKTER);
+            let text_display = format!("> {}_", app.input_teks);
+            
+            let kotak_input = Paragraph::new(text_display)
+                .block(Block::default().borders(Borders::ALL).title(format!("Silakan Ketik Teks Anda (Format: JSON Archive){}", info_karakter)))
+                .style(Style::default().fg(Color::Cyan));
+
+            // Perbaikan: Gunakan area_input[0] untuk kotak input
+            f.render_widget(kotak_input, area_input[0]);
+
+            if let Some(ref pesan) = app.error_pesan {
+                let komponen_error = Paragraph::new(Span::styled(
+                    format!("⚠ {}", pesan),
+                    Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
+                ));
+
+                // Perbaikan: Gunakan area_input[1] untuk memunculkan pesan error di bawahnya
+                f.render_widget(komponen_error, area_input[1]);
+            }
+        }
+
+        MenuTab::Riwayat => {
+            let mut baris_riwayat = vec![Line::from(Span::styled(
+                format!("Data dari file fisik ({}) yang berhasil diparsing:", FILE_PATH),
+                Style::default().add_modifier(Modifier::UNDERLINED)
+            ))];
+
+            if app.teks_tersimpan.is_empty() {
+                baris_riwayat.push(Line::from(""));
+                baris_riwayat.push(Line::from(Span::styled("(Belum ada pesan terenkode dalam JSON)", Style::default().fg(Color::DarkGray))));
+            } else {
+                for (i, teks) in app.teks_tersimpan.iter().enumerate() {
+                    baris_riwayat.push(Line::from(vec![
+                        Span::styled(format!("  [{:02}] ", i + 1), Style::default().fg(Color::Cyan)),
+                        Span::raw(teks.as_str()), // Optimasi: Gunakan reference slice daripada melakukan clone() objek String penuh
+                    ]));
+                }
+            }
+            let kotak_riwayat = Paragraph::new(Text::from(baris_riwayat))
+                .block(Block::default().borders(Borders::ALL).title("Database Riwayat JSON (Standard Library Mode)"))
+                .style(Style::default().fg(Color::Green));
+
+            // Perbaikan: Gunakan susunan_utama[1] untuk menampilkan riwayat di area tengah
+            f.render_widget(kotak_riwayat, susunan_utama[1]);
+        }
+    }
+    // --- 3. SEKTOR FOOTER (Perbaikan Teks Navigasi) ---
+    let petunjuk_bawah = Paragraph::new("Navigasi: [Tab] atau [1]/[2] Pindah Menu | [Enter] Kirim & Update JSON | [Esc] Keluar")
+        .block(Block::default().borders(Borders::ALL).title("Sistem Hotkeys"))
+        .style(Style::default().fg(Color::DarkGray))
+        .centered();
+
+    // Perbaikan: Gunakan susunan_utama[2] untuk area Footer bawah
+    f.render_widget(petunjuk_bawah, susunan_utama[2]);
+}
+
+```
 
 
 
