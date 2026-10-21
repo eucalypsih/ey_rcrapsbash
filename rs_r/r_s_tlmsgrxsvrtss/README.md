@@ -1361,6 +1361,73 @@ fn ui(f: &mut Frame, app: &mut App) {
 
 ---
 
+qc: 
+membantu **menyesuaikan nilai interval waktu (_sleep_) pada skrip Bash** Anda agar pengiriman data dari client tidak sering terkena *timeout*
+
+---
+
+aa: 
+Tentu, mari kita bedah skrip Bash pengujian yang Anda gunakan. Masalah utama skrip bawaan Anda adalah perintah `telnet 127.0.0.1 8080` dijalankan langsung di dalam pipa (*pipeline*). `telnet` adalah utilitas interaktif yang lambat dalam membuka dan menutup soket jaringan, sehingga ketika dikombinasikan dengan siklus loop tanpa jeda penutupan yang pas, soketnya sering kali mengalami tabrakan (*race condition*).
+
+Untuk pengujian otomatisasi performa tinggi dan anti-*timeout*, utilitas **`nc` (netcat)** jauh lebih direkomendasikan daripada telnet karena nc dirancang khusus untuk menerima *input stream* non-interaktif secara instan.
+
+Berikut adalah **tiga opsi penyesuaian skrip Bash** yang bisa Anda pilih sesuai dengan kebutuhan beban pengujian Anda:
+
+## Opsi 1: Menggunakan Netcat (`nc`) dengan Jeda Stabil (Sangat Direkomendasikan)
+Skrip ini mengganti `telnet` dengan `nc` dan menyisipkan jeda sleep mini sebesar **0.1 detik** di dalam loop untuk memberikan waktu bagi sistem operasi (dan server Rust) dalam melakukan siklus *handshake* TCP secara sempurna.
+```bash
+while true; do 
+    # 1. Ambil waktu lokal client sampai milidetik
+    d=$(date +"%H:%M:%S.%3N")
+    
+    # 2. Kirim data menggunakan netcat (nc) dengan flag timeout -w 1 agar aman
+    echo "[$d] [INFO] System audit checkpoint passed successfully." | nc -w 1 127.0.0.1 8080
+    
+    # 3. Jeda pengiriman antar client (100 milidetik), sangat pas untuk server Rust TUI
+    sleep 0.1 
+done
+
+```
+
+## Opsi 2: Tetap Menggunakan `telnet` (Dengan Optimalisasi Jeda)
+Jika di sistem operasi Anda tidak tersedia `nc` dan terpaksa menggunakan `telnet`, pipa internal harus dipecah agar sub-shell tidak menggantung (*hang*) saat memutus koneksi soket lama.
+```bash
+while true; do 
+    d=$(date +"%H:%M:%S.%3N")
+    
+    # Menggunakan sub-shell kurung untuk memastikan output tertulis total sebelum telnet memutus soket
+    (echo "[$d] [INFO] System audit checkpoint passed successfully."; sleep 0.1) | telnet 127.0.0.1 8080 2>/dev/null
+    
+    # Jeda luar dinaikkan menjadi 0.3 detik karena overhead penutupan soket telnet lebih lama
+    sleep 0.3 
+done
+
+```
+
+## Opsi 3: Pengujian Beban Agresif (Stress Test Tanpa Timeout)
+Jika Anda ingin menguji seberapa cepat TUI Anda mendeteksi data tanpa jeda sleep sama sekali, gunakan flag **`-N` (shutdown soket instan)** pada `nc`. Ini akan menutup koneksi dari sisi client segera setelah payload terkirim tanpa perlu menunggu balasan dari server.
+```bash
+while true; do 
+    d=$(date +"%H:%M:%S.%3N")
+    # Flag -N pada nc membuat soket langsung ditutup begitu EOF tercapai, mencegah WouldBlock di server
+    echo "[$d] [INFO] Stress-test payload." | nc -N 127.0.0.1 8080
+done
+
+```
+
+## Perbandingan Efektivitas Interval Jeda Skrip Bash
+
+
+| Tipe Skrip Pengujian | Interval *Sleep* | Keunggulan Utama | Perilaku pada Panel Log TUI |
+| :--- | :--- | :--- | :--- |
+| **Opsi 1 (`nc` Stabil)** | `0.1` detik | Paling hemat resource CPU dan soket bersih. | Log `[Koneksi]` dan `[Pesan Teks]` muncul berpasangan dengan mulus secara berkala. |
+| **Opsi 2 (`telnet` Aman)** | `0.3` detik | Kompatibilitas tinggi tanpa *dependency* baru. | Jeda sedikit lebih lambat, namun terhindar dari anomali soket menggantung. |
+| **Opsi 3 (`nc` Agresif)** | Tanpa jeda (`0`) | Menguji ketahanan *channel* antar thread. | Log melonjak naik dengan kecepatan tinggi tanpa memicu error *timeout* `WouldBlock`. |
+
+Untuk pengujian di lingkungan lokal Anda, apakah utilitas **`nc` (netcat)** sudah terinstal secara bawaan? 
+
+qa: 
+Jika Anda ingin saya menambahkan **penghitung statistik total pesan yang masuk (Counter)** pada pojok kanan bawah Panel Log TUI Rust Anda, silakan beritahu saya.
 
 
 
