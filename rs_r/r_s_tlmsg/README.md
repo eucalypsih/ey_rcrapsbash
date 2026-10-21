@@ -40,6 +40,12 @@ echo "Hello from Client TUI!" | nc 127.0.0.1 8080
 (echo "Hello from Client TUI!"; sleep 1) | telnet 127.0.0.1 8080
 
 ```
+
+```bash
+while true; do echo "[$(date '+%H:%M:%S')] [INFO] System audit checkpoint passed successfully." | telnet 127.0.0.1 8080; sleep 1; done
+
+```
+
 5. Perhatikan halaman **Real-time Server Log** pada TUI Anda. Log akan langsung memunculkan baris baru berwarna kuning terang:
 ```bash
 🟢 [Koneksi] Terhubung dengan client: 127.0.0.1:xxxxx
