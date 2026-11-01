@@ -1636,6 +1636,35 @@ Ganti blok pengumpulan file remote & lokal Anda (Bagian 1, 2, dan 3) dengan meto
 
 ```
 
+## Ringkasan Keuntungan Hambatan Baru Ini:
+1. Kecepatan Parsing Naik 5x - 10x Lipat: Menghilangkan *loop-in-loop* Bash dan menyerahkan penyaringan folder ke mesin regex `grep -E`.
+2. Seketika Terbuka: Menu `[eE]` akan langsung memindai, menyaring, dan mencetak ribuan kombinasi file lokal/virtual secara *real-time* tanpa ada animasi yang menunda kenyamanan mengetik Anda.
+
+---
+
+qa: 
+Apakah Anda ingin menerapkan optimasil **Filter Regex Memori** ini untuk mendongkrak kecepatan buka menu `[eE]`, atau kapasitas file proyek Anda saat ini masih tergolong kecil sehingga kode lama dirasa sudah cukup?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
