@@ -1,5 +1,7 @@
 # 
 
+- `bclo_v2_2op_quit` --> `bclo_v2_2op_quit_fix`
+
 qs: 
 saat menerapkan perubahan blok `commit-tree` di atas pada opsi `[qQ])` status `Verified` di github tidak muncul
 
@@ -900,9 +902,11 @@ while true; do # Loop Utama (Tingkat 2 dari dalam)
               
               # 4. Buat objek commit baru secara instan di memori dengan bypass total
               if [ -n "$parent_id" ]; then
-                new_commit_id=$(echo "$pesan_commit" | git -C "$rp" commit-tree "$tree_id" -p "$parent_id" 2>/dev/null)
+              # TAMBAHKAN PARAMETER -S DI SINI UNTUK MENGEMBALIKAN STATUS VERIFIED
+                new_commit_id=$(echo "$pesan_commit" | git -C "$rp" commit-tree "$tree_id" -S -p "$parent_id" 2>/dev/null)
               else
-                new_commit_id=$(echo "$pesan_commit" | git -C "$rp" commit-tree "$tree_id" 2>/dev/null)
+                # TAMBAHKAN PARAMETER -S DI SINI UNTUK MENGEMBALIKAN STATUS VERIFIED
+                new_commit_id=$(echo "$pesan_commit" | git -C "$rp" commit-tree "$tree_id" -S 2>/dev/null)
               fi
 
               # 5. Geser pointer branch aktif secara aman ke hasil commit-tree baru tersebut
