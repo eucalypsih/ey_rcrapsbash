@@ -18,6 +18,8 @@ behind_commits=$(git -C "$rp" rev-list --count "${current_branch}..${rm_name}/${
 1. Format Referensi Lokal Salah: String `"refs/heads/${current_branch}"` atau `${current_branch}` hanya merujuk pada branch lokal Anda. Git tidak mengenali format `${rm_name}/${current_branch}` secara langsung di dalam perintah *low-level plumbing* seperti `rev-list` kecuali Anda mendefinisikan *namespace*-nya secara utuh.
 2. Namespace Remote yang Benar: Struktur referensi biner remote di dalam folder `.git` yang sah adalah `refs/remotes/${rm_name}/${current_branch}`.
 
+- perintah tingkat rendah (*plumbing*) seperti `rev-list` atau `diff-tree` membutuhkan penulisan namespace lengkap (`refs/remotes/origin/main`)
+
 ---
 
 ## Solusi Perbaikan Kode
