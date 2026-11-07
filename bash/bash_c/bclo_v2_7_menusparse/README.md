@@ -1042,7 +1042,7 @@ while true; do # Loop Utama (Tingkat 2 dari dalam)
                 new_commit_id=$(echo "$pesan_commit" | git -C "$rp" commit-tree "$tree_id" -S 2>/dev/null)
               fi
 
-              # 5. Geser pointer branch aktif secara aman ke hasil commit-tree baru tersebut
+              # 5. Geser pointer branch aktif secara aman ke hasil commit-tree baru tersebute
               if [ -n "$new_commit_id" ]; then
                 git -C "$rp" update-ref "refs/heads/$current_branch" "$new_commit_id"
                 _o "Perubahan BERHASIL disuntikkan langsung ke commit binar lokal!"
@@ -1744,8 +1744,6 @@ while true; do # Loop Utama (Tingkat 2 dari dalam)
 done # end while menu utama (PINDAHKAN KE SINI: Penutup Terluar Skrip Utama)
 
 ```
-
-
 
 
 
